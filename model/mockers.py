@@ -7,14 +7,12 @@ Created on Tue Aug 12 20:02:08 2014
 
 import ctypes
 import ctypes.util
-import numpy as np
-
 import logging
 
+import numpy as np
+from lantz import Action, Feat
 from lantz import Driver
 from lantz import Q_
-
-from lantz import Action, Feat
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',
                     datefmt='%Y-%d-%m %H:%M:%S')
@@ -78,7 +76,6 @@ class MockLaser(Driver):
         return 55555 * self.mW
 
     def enter_mod_mode(self):
-
         pass
 
     @property
@@ -108,7 +105,7 @@ class MockLaser(Driver):
         return 0
 
 
-class HMockCamData():
+class HMockCamData:
 
     # __init__
     #
@@ -116,8 +113,8 @@ class HMockCamData():
     #
     # @param size The size of the data object in bytes.
     #
-    def __init__(self, size):
-        self.np_array = np.random.randint(1, 65536, int(size))
+    def __init__(self, size, max_value):
+        self.np_array = np.random.randint(1, max_value, int(size))
         self.size = size
 
     # __getitem__
@@ -168,6 +165,7 @@ class MockHamamatsu(Driver):
         self.max_backlog = 0
         self.number_image_buffers = 0
         self.hcam_data = []
+        self.max_value_for_mock_data = np.random.randint(65536)
 
         self.s = Q_(1, 's')
 
@@ -222,20 +220,23 @@ class MockHamamatsu(Driver):
         This will block waiting for new frames even if there new frames
         available when it is called.
 
-        @return [frames, [frame x size, frame y size]]'''
+        @return (frames, (frame x size, frame y size))'''
         frames = []
 
         for i in range(2):
             # Create storage
-            hc_data = HMockCamData(self.frame_x * self.frame_y)
-            frames.append(hc_data)
+            hc_data = HMockCamData(self.frame_x * self.frame_y, self.max_value_for_mock_data)
+            frames.append(np.reshape(hc_data.np_array, (self.frame_x, self.frame_y)))
 
-        return [frames, [self.frame_x, self.frame_y]]
+        return frames, (self.frame_x, self.frame_y)
 
-    def getLast(self):
-        hc_data = HMockCamData(self.frame_x * self.frame_y)
-        return [hc_data, [self.frame_x, self.frame_y]]
-        
+    def getLast(self, transpose=False):
+        hc_data = HMockCamData(self.frame_x * self.frame_y, self.max_value_for_mock_data)
+        if transpose:
+            return np.reshape(hc_data.np_array.T, (self.frame_y, self.frame_x))
+        else:
+            return np.reshape(hc_data.np_array, (self.frame_x, self.frame_y))
+
     def getModelInfo(self):
         ''' Returns the model of the camera
 
@@ -279,7 +280,7 @@ class MockHamamatsu(Driver):
     #
     # @param property_name The name of the property (as a string).
     #
-    # @return [minimum value, maximum value]
+    # @return (minimum value, maximum value)
     #
     def getPropertyRange(self, property_name):
         pass
@@ -288,7 +289,7 @@ class MockHamamatsu(Driver):
     #
     # Return if a property is readable / writeable.
     #
-    # @return [True/False (readable), True/False (writeable)]
+    # @return (True/False (readable), True/False (writeable))
     #
     def getPropertyRW(self, property_name):
         pass
@@ -299,14 +300,14 @@ class MockHamamatsu(Driver):
     #
     # @param property_name The name of the property.
     #
-    # @return [the property value, the property type]
+    # @return (the property value, the property type)
     #
     def getPropertyValue(self, property_name):
 
         prop_value = self.properties[property_name]
         prop_type = property_name
 
-        return [prop_value, prop_type]
+        return prop_value, prop_type
 
     # isCameraProperty
     #
@@ -390,7 +391,7 @@ class MockHamamatsu(Driver):
         n_buffers = int((2.0 * 1024 * 1024 * 1024) / self.frame_bytes)
         self.number_image_buffers = n_buffers
 
-        self.hcam_data = [HMockCamData(self.frame_x * self.frame_y)
+        self.hcam_data = [HMockCamData(self.frame_x * self.frame_y, self.max_value_for_mock_data)
                           for i in range(1, 2)]
 
     # stopAcquisition
@@ -398,6 +399,9 @@ class MockHamamatsu(Driver):
     # Stop data acquisition.
     #
     def stopAcquisition(self):
+        pass
+
+    def updateIndices(self):
         pass
 
     # shutdown
@@ -445,10 +449,10 @@ class MockWebcam(Driver):
 
     def grab_image(self, **kwargs):
         img = np.zeros((256, 320))
-        beamCenter = [int(np.random.randn()*10 + 123),
-                      int(np.random.randn()*10 + 155)]
+        beamCenter = [int(np.random.randn() * 10 + 123),
+                      int(np.random.randn() * 10 + 155)]
         img[beamCenter[0] - 10:beamCenter[0] + 10,
-            beamCenter[1] - 10:beamCenter[1] + 10] = 1
+        beamCenter[1] - 10:beamCenter[1] + 10] = 1
         return img
 
     def stop(self):

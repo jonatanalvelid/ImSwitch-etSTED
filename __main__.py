@@ -5,16 +5,20 @@ Created on Fri Mar 20 15:17:46 2020
 @author: _Xavi
 """
 
-from controller.TempestaController import TempestaController
-from view.TempestaView import TempestaView
-from model.TempestaModel import TempestaModel
-from pyqtgraph.Qt import QtGui
+import os
 import sys
 
-model = TempestaModel()
+from pyqtgraph.Qt import QtGui
+import qdarkstyle
+
+from controller.MainController import MainController
+from model.MainModel import MainModel
+from view.MainView import MainView
+
+model = MainModel()
 app = QtGui.QApplication([])
-view = TempestaView()
-controller = TempestaController(model, view)
-view.registerController(controller)
+app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api=os.environ.get('PYQTGRAPH_QT_LIB')))
+view = MainView(model.setupInfo.availableWidgets)
+controller = MainController(model, view)
 view.show()
 sys.exit(app.exec_())

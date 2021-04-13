@@ -279,7 +279,8 @@
         "ULensesWidget": false,
         "SLMWidget": true,
         "FocusLockWidget": true,
-        "MotCorrWidget": false
+        "MotCorrWidget": false,
+        "SmartSTEDWidget": true
     },
     "widgetLayout": {
         "lasersAndAlignmentInSingleDock": false

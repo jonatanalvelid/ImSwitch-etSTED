@@ -62,6 +62,9 @@ class MainController:
         if self.__setupInfo.availableWidgets.MotCorrWidget:
             self.motcorrController = self.__factory.createController(controllers.MotCorrController, self.__mainView.motCorrWidget)
 
+        if self.__setupInfo.availableWidgets.SmartSTEDWidget:
+            self.smartSTEDController = self.__factory.createController(controllers.SmartSTEDController, self.__mainView.smartSTEDWidget)
+
         self.__mainView.setDetectorRelatedDocksVisible(
             __masterController.detectorsManager.hasDetectors()
         )

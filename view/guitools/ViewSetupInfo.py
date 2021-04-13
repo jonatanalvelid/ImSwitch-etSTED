@@ -28,6 +28,7 @@ class WidgetAvailabilityInfo:
     SLMWidget: bool = True
     FocusLockWidget: bool = True
     MotCorrWidget: bool = True
+    SmartSTEDWidget: bool = True
 
 
 @dataclass(frozen=True)

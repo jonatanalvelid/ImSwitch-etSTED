@@ -88,6 +88,13 @@ class MainView(QtGui.QMainWindow):
             focusLockDock.addWidget(self.focusLockWidget)
             dockArea.addDock(focusLockDock, 'above', laserDock)
 
+        # Focus lock dock
+        if self.availableWidgetsInfo.SmartSTEDWidget:
+            smartSTEDDock = Dock('SmartSTED', size=(1, 1))
+            self.smartSTEDWidget = self.factory.createWidget(widgets.SmartSTEDWidget)
+            smartSTEDDock.addWidget(self.smartSTEDWidget)
+            dockArea.addDock(smartSTEDDock, 'above', laserDock)
+
         # FFT dock
         if self.availableWidgetsInfo.FFTWidget:
             FFTDock = Dock("FFT Tool", size=(1, 1))

@@ -101,7 +101,7 @@ class LVWorker(Worker):
     def __init__(self, detectorsManager, updatePeriod):
         super().__init__()
         self._detectorsManager = detectorsManager
-        self._updatePeriod = updatePeriod
+        self._updatePeriod = updatePeriod  # update period in ms
 
     def run(self):
         self._detectorsManager.execOnAll(lambda c: c.updateLatestFrame(False))

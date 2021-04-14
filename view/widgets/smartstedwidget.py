@@ -24,7 +24,8 @@ class SmartSTEDWidget(Widget):
         if not os.path.exists(self.analysisDir):
             os.makedirs(self.analysisDir)
 
-        self.param_fields = list()
+        self.param_names = list()
+        self.param_edits = list()
 
         self.initiateButton = guitools.BetterPushButton('Initiate smartSTED')
         self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
@@ -59,26 +60,30 @@ class SmartSTEDWidget(Widget):
 
     def initParamFields(self, parameters: dict):
         # remove previous parameter fields for the previously loaded pipeline
-        for param in self.param_fields:
+        for param in self.param_names:
+            self.grid.removeWidget(param)
+        for param in self.param_edits:
             self.grid.removeWidget(param)
 
         # initiate parameter fields for all the parameters in the pipeline chosen
         currentRow = 2
         
-        self.param_fields = list()
+        self.param_names = list()
+        self.param_edits = list()
         for pipeline_param_name, pipeline_param_val in parameters.items():
-            # create param for input
-            param_name = QtGui.QLabel('{}'.format(pipeline_param_name))
-            param_value = pipeline_param_val.default if pipeline_param_val.default is not pipeline_param_val.empty else 0
-            param_edit = QtGui.QLineEdit(str(param_value))
-            # add param name and param to grid
-            self.grid.addWidget(param_name, currentRow, 0)
-            self.grid.addWidget(param_edit, currentRow, 1)
-            # add param name and param to object list of temp widgets
-            self.param_fields.append(param_name)
-            self.param_fields.append(param_edit)
+            if pipeline_param_name != 'img':
+                # create param for input
+                param_name = QtGui.QLabel('{}'.format(pipeline_param_name))
+                param_value = pipeline_param_val.default if pipeline_param_val.default is not pipeline_param_val.empty else 0
+                param_edit = QtGui.QLineEdit(str(param_value))
+                # add param name and param to grid
+                self.grid.addWidget(param_name, currentRow, 0)
+                self.grid.addWidget(param_edit, currentRow, 1)
+                # add param name and param to object list of temp widgets
+                self.param_names.append(param_name)
+                self.param_edits.append(param_edit)
 
-            currentRow += 1
+                currentRow += 1
 
 
 

@@ -21,6 +21,22 @@
                 "cameraListIndex": null,
                 "purpose": "acquisition"
             }
+        },
+        "smartSTEDCamera": {
+          "analogChannel": null,
+          "digitalLine": null,
+          "managerName": "TISManager",
+          "managerProperties": {
+            "purpose": "acquisition",
+            "cameraListIndex": 0,
+            "tis": {
+              "exposure": 0,
+              "gain": 0,
+              "brightness": 0,
+              "image_width": 1280,
+              "image_height": 1024
+            }
+          }
         }
     },
     "lasers": {
@@ -198,5 +214,8 @@
     },
     "scanDefaults": {
         "defaultScanFile": null
+    },
+    "smartSTED": {
+        "fastDetector": "smartSTEDCamera"
     }
 }

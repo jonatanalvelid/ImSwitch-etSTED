@@ -76,6 +76,11 @@ class FocusLockInfo:
 
 
 @dataclass(frozen=True)
+class SmartSTEDInfo:
+    fastDetector: str
+
+
+@dataclass(frozen=True)
 class DesignersInfo:
     scanDesigner: str  # name of the scan designer class to use
     TTLCycleDesigner: str  # name of the TTL cycle designer class to use
@@ -92,6 +97,7 @@ class SetupInfo:
     scan: ScanInfo
     slm: SLMInfo
     focusLock: FocusLockInfo
+    smartSTED: SmartSTEDInfo
 
     designers: DesignersInfo
 

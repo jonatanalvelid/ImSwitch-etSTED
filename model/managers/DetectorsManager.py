@@ -87,7 +87,7 @@ class DetectorsManager(MultiManager, SignalInterface):
     def startAcquisition(self):
         self.execOnAll(lambda c: c.startAcquisition())
         self.acquisitionStarted.emit()
-        sleep(0.3)
+        sleep(0.1)
         self._thread.start()
 
     def stopAcquisition(self):

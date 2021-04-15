@@ -433,15 +433,35 @@ class ViewController(WidgetController):
         self._widget.detectorList.currentIndexChanged.connect(self.detectorSwitch)
         self._widget.nextDetectorButton.clicked.connect(self.detectorNext)
         self._widget.detectorPropsButton.clicked.connect(self.showDetectorPropsDialog)
+        self._commChannel.toggleLiveview.connect(lambda startstop: self.controlLiveview(startstop))
+
+        self.liveview = False
 
     def liveview(self):
         """ Start liveview and activate detector acquisition. """
         self._widget.crosshairButton.setEnabled(True)
         self._widget.gridButton.setEnabled(True)
-        if self._widget.liveviewButton.isChecked():
+        if not self.liveview:
             self._master.detectorsManager.startAcquisition()
+            self.liveview = True
+            self._widget.liveviewButton.setChecked(True)
         else:
             self._master.detectorsManager.stopAcquisition()
+            self.liveview = False
+            self._widget.liveviewButton.setChecked(False)
+
+    def controlLiveview(self, startstop):
+        """ Start liveview from elsewhere than the button, from another widget. """
+        if self.liveview and not startstop:
+            self._master.detectorsManager.stopAcquisition()
+            self._widget.liveviewButton.setChecked(False)
+            self.liveview = False
+        elif not self.liveview and startstop:
+            self._master.detectorsManager.startAcquisition()
+            self._widget.liveviewButton.setChecked(True)
+            self.liveview = True
+        else:
+            pass
 
     def showDetectorPropsDialog(self):
         """ Show the detector properties dialog for the current detector. """

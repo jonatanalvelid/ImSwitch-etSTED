@@ -14,6 +14,8 @@ from lantz import Action, Feat
 from lantz import Driver
 from lantz import Q_
 
+from scipy.stats import multivariate_normal
+
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',
                     datefmt='%Y-%d-%m %H:%M:%S')
 
@@ -490,11 +492,30 @@ class MockCameraTIS:
         self.model = 'mock'
 
     def grabFrame(self, **kwargs):
-        img = np.zeros((500, 600))
-        beamCenter = [int(np.random.randn() * 1 + 250), int(np.random.randn() * 30 + 300)]
-        img[beamCenter[0] - 10:beamCenter[0] + 10,
-        beamCenter[1] - 10:beamCenter[1] + 10] = 1
+        imgsize = (500,500)
+        peakmax = 60
+        noisemean = 10
+        # generate image
+        img = np.zeros(imgsize)
+        # add a random gaussian peak sometimes
+        if np.random.rand() > 0.9:
+            x, y = np.meshgrid(np.linspace(0,imgsize[0],imgsize[0]), np.linspace(0,imgsize[1],imgsize[1]))
+            pos = np.dstack((x, y))
+            xc = (np.random.rand()*2-1)*imgsize[0]/2 + imgsize[0]/2
+            yc = (np.random.rand()*2-1)*imgsize[1]/2 + imgsize[1]/2
+            rv = multivariate_normal([xc, yc], [[50, 0], [0, 50]])
+            img = np.random.rand()*peakmax*317*rv.pdf(pos)  #*317 to make peakval == 1
+            img = img + 0.01*np.random.poisson(img)
+        # add Poisson noise
+        img = img + np.random.poisson(lam=noisemean, size=imgsize)
         return img
+
+    #def grabFrame(self, **kwargs):
+    #    img = np.zeros((500, 600))
+    #    beamCenter = [int(np.random.randn() * 1 + 250), int(np.random.randn() * 30 + 300)]
+    #    img[beamCenter[0] - 10:beamCenter[0] + 10,
+    #    beamCenter[1] - 10:beamCenter[1] + 10] = 1
+    #    return img
 
     def setPropertyValue(self, property_name, property_value):
         return property_value

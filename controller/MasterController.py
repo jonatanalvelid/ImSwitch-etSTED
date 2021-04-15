@@ -19,7 +19,7 @@ class MasterController:
         # Init managers
         self.nidaqManager = NidaqManager(self.__setupInfo)
         self.rs232sManager = RS232sManager(self.__setupInfo.rs232devices)
-        self.detectorsManager = DetectorsManager(self.__setupInfo.detectors, updatePeriod=100,
+        self.detectorsManager = DetectorsManager(self.__setupInfo.detectors, updatePeriod=200,
                                                      nidaqManager=self.nidaqManager)
         self.recordingManager = RecordingManager(self.detectorsManager)
         self.scanManager = ScanManager(self.__setupInfo)  # Make sure compatibility

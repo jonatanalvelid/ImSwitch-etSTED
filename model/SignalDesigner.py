@@ -383,10 +383,10 @@ class GalvoScanDesigner(SignalDesigner):
         sig_dict = {parameterDict['target_device'][0]: fast_axis_signal,
                     parameterDict['target_device'][1]: slow_axis_signal}
 
-        #plt.figure()
-        #plt.plot(fast_axis_signal-0.01)
-        #plt.plot(slow_axis_signal)
-        #plt.show()
+        plt.figure()
+        plt.plot(fast_axis_signal-0.01)
+        plt.plot(slow_axis_signal)
+        plt.show()
 
         pixels_line = int(self.axis_length[0]/self.axis_step_size[0])
         # scanInfoDict: parameters that are important to relay to TTLCycleDesigner and/or image acquisition managers

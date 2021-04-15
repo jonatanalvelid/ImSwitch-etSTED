@@ -276,7 +276,7 @@ class NidaqManager(SignalInterface):
             self.timerTaskWaiter = WaitThread()
             # create timer counter output task, to control the acquisition timing (1 MHz)
             self.timerTask = self.__createChanCOTask('TimerTask', channel=2,
-                                                     rate=1e6, sampsInScan=np.int(len(AOsignals[0])*10) ,starttrig=True,
+                                                     rate=1e6, sampsInScan=np.int(len(AOsignals[0])*10), starttrig=True,
                                                      reference_trigger='ao/StartTrigger')
             self.timerTaskWaiter.connect(self.timerTask)
             self.timerTaskWaiter.waitdoneSignal.connect(lambda: self.taskDone('timer', self.timerTaskWaiter))

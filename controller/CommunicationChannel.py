@@ -44,7 +44,9 @@ class CommunicationChannel(SignalInterface):
 
     moveZstage = Signal(float)  # (step)
 
-    toggleLiveview = Signal(bool)  # (step)
+    toggleLiveview = Signal(bool)
+
+    toggleBlockScanWidget = Signal(bool)
 
     def __init__(self, main):
         super().__init__()

@@ -44,6 +44,7 @@ class SmartSTEDController(WidgetController):
 
             # Connect communication channel signals
             self._commChannel.toggleLiveview.emit(True)
+            self._commChannel.toggleBlockScanWidget.emit(False)
             self._commChannel.updateImage.connect(self.runPipeline)
 
             self.__scatterPlot.show()
@@ -52,6 +53,7 @@ class SmartSTEDController(WidgetController):
         else:
             # Disconnect communication channel signals
             self._commChannel.toggleLiveview.emit(False)
+            self._commChannel.toggleBlockScanWidget.emit(True)
             self._commChannel.updateImage.disconnect(self.runPipeline)
             
             self.__param_vals = list()
@@ -156,8 +158,8 @@ class SmartSTEDController(WidgetController):
             if positionerInfo.managerProperties['scanner']:
                 analogParameterDict['target_device'].append(positionerName)
                 if positionerName != 'None':
-                    size = 3.0
-                    stepSize = 0.03
+                    size = float(self._widget.im_size_edit.text())
+                    stepSize = float(self._widget.px_size_edit.text())
                     center = position[index]
                     start = 0.0
                     analogParameterDict['axis_length'].append(size)
@@ -186,8 +188,8 @@ class SmartSTEDController(WidgetController):
                 float(deviceEnd) / 1000 for deviceEnd in deviceEnds if deviceEnd
             ])
 
-        digitalParameterDict['sequence_time'] = 0.01 / 1000
-        analogParameterDict['sequence_time'] = 0.01 / 1000
+        digitalParameterDict['sequence_time'] = float(self._widget.dw_time_edit.text()) / 1000
+        analogParameterDict['sequence_time'] = float(self._widget.dw_time_edit.text()) / 1000
 
         return analogParameterDict, digitalParameterDict
 

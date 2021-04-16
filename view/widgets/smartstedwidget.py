@@ -20,28 +20,13 @@ class SmartSTEDWidget(Widget):
         super().__init__(*args, **kwargs)
 
         self.analysisDir = os.path.join(constants.rootFolderPath, 'analysispipelines')
-
+        
         if not os.path.exists(self.analysisDir):
             os.makedirs(self.analysisDir)
-
-        self.param_names = list()
-        self.param_edits = list()
-
-        self.initiateButton = guitools.BetterPushButton('Initiate smartSTED')
-        self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
-        self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
-        self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
-
-        self.endlessCheck = QtGui.QCheckBox('Endless scanning')
-
-        self.analysisPipelinePar = QtGui.QComboBox()
-
-        self.grid = QtGui.QGridLayout()
-        self.setLayout(self.grid)
-    
-    def initControls(self, *args):
+        
         # add all available analysis pipelines to the dropdown list
         self.analysisPipelines = list()
+        self.analysisPipelinePar = QtGui.QComboBox()
         for pipeline in os.listdir(self.analysisDir):
             if os.path.isfile(os.path.join(self.analysisDir, pipeline)):
                 pipeline = pipeline.split('.')[0]
@@ -49,14 +34,55 @@ class SmartSTEDWidget(Widget):
         
         self.analysisPipelinePar.addItems(self.analysisPipelines)
         self.analysisPipelinePar.setCurrentIndex(0)
+
+        self.param_names = list()
+        self.param_edits = list()
+
+        self.initiateButton = guitools.BetterPushButton('Initiate smartSTED')
+        self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
+        self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
+
+        self.endlessCheck = QtGui.QCheckBox('Endless scanning')
+
+        self.im_param_label = QtGui.QLabel('ROI parameters')
+        self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.im_size_label = QtGui.QLabel('ROI size (µm)')
+        self.im_size_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.im_size_edit = QtGui.QLineEdit(str(3))
+        self.px_size_label = QtGui.QLabel('Step size (µm)')
+        self.px_size_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.px_size_edit = QtGui.QLineEdit(str(0.03))
+        self.dw_time_label = QtGui.QLabel('Dwell time (ms)')
+        self.dw_time_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.dw_time_edit = QtGui.QLineEdit(str(0.01))
+
+
+        self.grid = QtGui.QGridLayout()
+        self.setLayout(self.grid)
     
+    def initControls(self, *args):
         currentRow = 0
 
         # add general buttons to grid
         self.grid.addWidget(self.initiateButton, currentRow, 0)
-        self.grid.addWidget(self.loadPipelineButton, currentRow+1, 0)
         self.grid.addWidget(self.endlessCheck, currentRow, 1)
-        self.grid.addWidget(self.analysisPipelinePar, currentRow, 2)
+        
+        currentRow += 1
+
+        # add image and pixel size parameters to grid
+        # add param name and param to grid
+        self.grid.addWidget(self.im_param_label, currentRow, 1)
+        self.grid.addWidget(self.im_size_label, currentRow-1, 2)
+        self.grid.addWidget(self.px_size_label, currentRow-1, 3)
+        self.grid.addWidget(self.dw_time_label, currentRow-1, 4)
+        self.grid.addWidget(self.im_size_edit, currentRow, 2)
+        self.grid.addWidget(self.px_size_edit, currentRow, 3)
+        self.grid.addWidget(self.dw_time_edit, currentRow, 4)
+
+        currentRow += 1
+
+        self.grid.addWidget(self.loadPipelineButton, currentRow, 0)
+        self.grid.addWidget(self.analysisPipelinePar, currentRow, 1)
 
     def initParamFields(self, parameters: dict):
         # remove previous parameter fields for the previously loaded pipeline
@@ -66,7 +92,7 @@ class SmartSTEDWidget(Widget):
             self.grid.removeWidget(param)
 
         # initiate parameter fields for all the parameters in the pipeline chosen
-        currentRow = 2
+        currentRow = 3
         
         self.param_names = list()
         self.param_edits = list()

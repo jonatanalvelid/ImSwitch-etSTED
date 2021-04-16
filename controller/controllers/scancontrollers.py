@@ -36,6 +36,7 @@ class ScanController(SuperScanController):
 
         # Connect CommunicationChannel signals
         self._commChannel.prepareScan.connect(lambda: self.setScanButton(True))
+        self._commChannel.toggleBlockScanWidget.connect(lambda block: self.toggleBlockWidget(block))
 
         # Connect ScanWidget signals
         self._widget.saveScanBtn.clicked.connect(self.saveScan)
@@ -265,3 +266,7 @@ class ScanController(SuperScanController):
             )
 
         self._widget.graph.plot.setYRange(-0.1, 1.1)
+
+    def toggleBlockWidget(self, block):
+        print('Un/block scan widget!')
+        self._widget.setEnabled(block)

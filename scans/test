@@ -1,23 +1,20 @@
-[pxParValues]
-end473 = 0.01
-sta405 = 0.0
-end488 = 0.01
-endCAM = 0.01
-end405 = 0.01
-sta473 = 0.0
-staCAM = 0.0
-sta488 = 0.0
+[analogParameterDict]
+sample_rate = 100000.0
+return_time = 0.01
+target_device = ['ND-GalvoX', 'ND-GalvoY', 'ND-PiezoZ']
+axis_length = [5.0, 5.0, 5.0]
+axis_step_size = [0.1, 0.1, 0.1]
+axis_centerpos = [0.0, 0.0, 0.0]
+axis_startpos = [0, 0, 0]
+sequence_time = 1e-05
 
-[scanParValues]
-stepSizeZ = 1.0
-stepSizeY = 0.1
-sizeX = 2.0
-sizeY = 2.0
-seqTime = 0.01
-stepSizeX = 0.1
-sizeZ = 10.0
+[digitalParameterDict]
+sample_rate = 100000.0
+target_device = ['561', '640']
+TTL_start = [[0.0], [0.0]]
+TTL_end = [[0.0], [0.0]]
+sequence_time = 1e-05
 
 [Modes]
-scanMode = FOV scan
 scan_or_not = True
 

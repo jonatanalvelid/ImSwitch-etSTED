@@ -19,7 +19,8 @@ class SmartSTEDWidget(Widget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.analysisDir = os.path.join(constants.rootFolderPath, 'analysispipelines')
+        self.analysisDir = os.path.join(constants.rootFolderPath, 'smartsted', 'analysis_pipelines')
+        self.transformDir = os.path.join(constants.rootFolderPath, 'smartsted', 'transform_pipelines')
         
         if not os.path.exists(self.analysisDir):
             os.makedirs(self.analysisDir)
@@ -34,6 +35,16 @@ class SmartSTEDWidget(Widget):
         
         self.analysisPipelinePar.addItems(self.analysisPipelines)
         self.analysisPipelinePar.setCurrentIndex(0)
+        
+        self.transformPipelines = list()
+        self.transformPipelinePar = QtGui.QComboBox()
+        for transform in os.listdir(self.transformDir):
+            if os.path.isfile(os.path.join(self.transformDir, transform)):
+                transform = transform.split('.')[0]
+                self.transformPipelines.append(transform)
+        
+        self.transformPipelinePar.addItems(self.transformPipelines)
+        self.transformPipelinePar.setCurrentIndex(0)
 
         self.param_names = list()
         self.param_edits = list()
@@ -41,8 +52,6 @@ class SmartSTEDWidget(Widget):
         self.initiateButton = guitools.BetterPushButton('Initiate smartSTED')
         self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
-
-        self.endlessCheck = QtGui.QCheckBox('Endless scanning')
 
         self.im_param_label = QtGui.QLabel('ROI parameters')
         self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
@@ -65,7 +74,6 @@ class SmartSTEDWidget(Widget):
 
         # add general buttons to grid
         self.grid.addWidget(self.initiateButton, currentRow, 0)
-        self.grid.addWidget(self.endlessCheck, currentRow, 1)
         
         currentRow += 1
 
@@ -83,6 +91,7 @@ class SmartSTEDWidget(Widget):
 
         self.grid.addWidget(self.loadPipelineButton, currentRow, 0)
         self.grid.addWidget(self.analysisPipelinePar, currentRow, 1)
+        self.grid.addWidget(self.transformPipelinePar, currentRow, 2)
 
     def initParamFields(self, parameters: dict):
         # remove previous parameter fields for the previously loaded pipeline

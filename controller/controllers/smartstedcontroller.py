@@ -42,6 +42,9 @@ class SmartSTEDController(WidgetController):
         if not self.__running:
             self.__param_vals = self.readParams()
 
+            # Load coordinate transform pipeline
+            self.loadTransform()
+
             # Connect communication channel signals
             self._commChannel.toggleLiveview.emit(True)
             self._commChannel.toggleBlockScanWidget.emit(False)
@@ -83,10 +86,15 @@ class SmartSTEDController(WidgetController):
         pipelineidx = self._widget.analysisPipelinePar.currentIndex()
         pipelinename = self._widget.analysisPipelines[pipelineidx]
         
-        self.pipeline = getattr(importlib.import_module(f'analysispipelines.{pipelinename}'), f'{pipelinename}')
+        self.pipeline = getattr(importlib.import_module(f'smartsted.analysis_pipelines.{pipelinename}'), f'{pipelinename}')
         pipelineparams = signature(self.pipeline).parameters
 
         self._widget.initParamFields(pipelineparams)
+
+    def loadTransform(self):
+        transformidx = self._widget.transformPipelinePar.currentIndex()
+        transformname = self._widget.transformPipelines[transformidx]
+        self.transform = getattr(importlib.import_module(f'smartsted.transform_pipelines.{transformname}'), f'{transformname}')
 
     def runPipeline(self, im, init):
         if not self.__busy:
@@ -96,17 +104,18 @@ class SmartSTEDController(WidgetController):
             print(f'Time since last pipeline run: {self.time_curr_bef-self.time_prev} ms')
 
             self.__busy = True
-            output = self.pipeline(im, *self.__param_vals)
+            coords_detected = self.pipeline(im, *self.__param_vals)
 
             dt = datetime.now()
             self.time_curr_aft = round(dt.microsecond/1000)
             print(f'Time for pipeline: {self.time_curr_aft-self.time_curr_bef} ms')
 
             self.__busy = False
-            self.updateScatter(output)
-            if output.size != 0:
+            self.updateScatter(coords_detected)
+            if coords_detected.size != 0:
                 self.pauseFastModality()
-                self.runSlowScan(position=(float((output[0]-250)/100),float((output[1]-250)/100),0.0))
+                coords_scan = self.transform(coords_detected)
+                self.runSlowScan(position=coords_scan)
 
     def updateScatter(self, coords):
         self.__scatterPlot.setData(x=coords[0,:], y=coords[1,:], pen=pg.mkPen(None), brush='g', symbol='x', size=25)

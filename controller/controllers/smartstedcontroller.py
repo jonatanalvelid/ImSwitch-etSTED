@@ -42,7 +42,7 @@ class SmartSTEDController(WidgetController):
         if not self.__running:
             self.__param_vals = self.readParams()
 
-            # Load coordinate transform pipeline
+            # Load coordinate transform pipeline of choice
             self.loadTransform()
 
             # Connect communication channel signals
@@ -131,7 +131,7 @@ class SmartSTEDController(WidgetController):
             param_vals.append(np.float(item.text()))
         return param_vals
 
-    def runSlowScan(self, position=(0.0,0.0,0.0)):
+    def runSlowScan(self, position=[0.0,0.0,0.0]):
         dt = datetime.now()
         time_curr_bef = round(dt.microsecond/1000)
         analogParameterDict, digitalParameterDict = self.getScanParameters(position)

@@ -520,6 +520,7 @@ class GalvoScanDesigner(SignalDesigner):
         # if p3 is already past the center of the scan it means that the max_velocity was never reached
         # in this case, remove two fixed points, and change the values to the curr. vel and time in the
         # middle of the flyback
+        #TODO: double check that this is actually correct?
         if p3 <= c_scan:
             t_mid = np.roots([-a_max/2, v_scan, p2-c_scan])[0]
             v_mid = -a_max*t_mid + v_scan
@@ -537,6 +538,7 @@ class GalvoScanDesigner(SignalDesigner):
             time[7] = time[5] + t_scanline/2      
         # generate Bernstein polynomial with piecewise spline interpolation with the fixed points
         # give positions, velocity, acceleration, and time of fixed points
+        print([pos, vel, acc])
         yder = np.array([pos, vel, acc]).T.tolist()
 
         bpoly = BPoly.from_derivatives(time, yder) # bpoly time unit: µs       

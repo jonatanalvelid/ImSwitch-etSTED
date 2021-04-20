@@ -478,8 +478,8 @@ class MockCameraTIS:
     def __init__(self):
 
         self.properties = {
-            'image_height': 1024,
-            'image_width': 1280,
+            'image_height': 2048,
+            'image_width': 2448,
             'subarray_vpos': 0,
             'subarray_hpos': 0,
             'exposure_time': 0.1,
@@ -492,22 +492,22 @@ class MockCameraTIS:
         self.model = 'mock'
 
     def grabFrame(self, **kwargs):
-        imgsize = (500,500)
+        imgsize = (2048, 2448)
         peakmax = 60
         noisemean = 10
         # generate image
         img = np.zeros(imgsize)
         # add a random gaussian peak sometimes
-        if np.random.rand() > 0.9:
-            x, y = np.meshgrid(np.linspace(0,imgsize[0],imgsize[0]), np.linspace(0,imgsize[1],imgsize[1]))
+        if np.random.rand() > 0.1:
+            x, y = np.meshgrid(np.linspace(0,imgsize[1],imgsize[1]), np.linspace(0,imgsize[0],imgsize[0]))
             pos = np.dstack((x, y))
             xc = (np.random.rand()*2-1)*imgsize[0]/2 + imgsize[0]/2
             yc = (np.random.rand()*2-1)*imgsize[1]/2 + imgsize[1]/2
             rv = multivariate_normal([xc, yc], [[50, 0], [0, 50]])
             img = np.random.rand()*peakmax*317*rv.pdf(pos)  #*317 to make peakval == 1
-            img = img + 0.01*np.random.poisson(img)
+            #img = img + 0.01*np.random.poisson(img)
         # add Poisson noise
-        img = img + np.random.poisson(lam=noisemean, size=imgsize)
+        #img = img + np.random.poisson(lam=noisemean, size=imgsize)
         return img
 
     #def grabFrame(self, **kwargs):

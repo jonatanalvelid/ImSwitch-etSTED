@@ -7,16 +7,14 @@ Created on Wed Jan 13 11:57:00 2021
 
 
 class LeicaDMIManager:
-    def __init__(self, name, *args, **kwargs):
-        #super().__init__(name=name, initialPosition=0)
-        # TODO: the following does not work now, as there is no controller trying to load this manager as of now. 
-        self._rs232Manager = kwargs['rs232sManager']._subManagers[positionerInfo.managerProperties['rs232device']]
+    def __init__(self, *args, **kwargs):
+        self._rs232Manager = kwargs['rs232sManager']._subManagers['leicastand']
         cmd = '71002'
         print(self._rs232Manager.send(cmd))  # print serial no of dmi stand
 
     def move(self, value, *args):
         if not int(value) == 0:
-            cmd = '71024 ' + str(int(value)))
+            cmd = '71024 ' + str(int(value))
             if int(value) > 132:
                 print('Warning: Step bigger than 500nm.')
             self._rs232Manager.send(cmd)
@@ -42,4 +40,16 @@ class LeicaDMIManager:
         """ Absolute mot_corr position movement. """
         movetopos = int(round(value*93.83))
         cmd = '47022 -1 ' + str(movetopos)
+        self._rs232Manager.send(cmd)
+
+    def setFLUO(self, *args):
+        cmd = '70029 10 x'
+        self._rs232Manager.send(cmd)
+
+    def setCS(self, *args):
+        cmd = '70029 14 x'
+        self._rs232Manager.send(cmd)
+
+    def setILshutter(self, value):
+        cmd = '77032 1 ' + str(value)
         self._rs232Manager.send(cmd)

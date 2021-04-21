@@ -5,6 +5,9 @@ Created on Fri Jan 08 14:00:00 2021
 @author: jonatanalvelid
 """
 
+from datetime import datetime
+import numpy as np
+
 from .DetectorManager import (
     DetectorManager, DetectorNumberParameter, DetectorListParameter
 )
@@ -26,6 +29,15 @@ class TISManager(DetectorManager):
         fullShape = (self._camera.getPropertyValue('image_width'),
                      self._camera.getPropertyValue('image_height'))
 
+        #roi_filter = self._camera.cam.create_frame_filter('ROI'.encode('utf-8'))
+        #self._camera.cam.add_frame_filter_to_device(roi_filter)
+        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Top'.encode('utf-8'), 0)
+        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Left'.encode('utf-8'), 0)
+        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Height'.encode('utf-8'), self._camera.getPropertyValue('image_height'))
+        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Width'.encode('utf-8'), self._camera.getPropertyValue('image_width'))
+
+        self._camera.startLive()
+
         # Prepare parameters
         parameters = {
             'exposure': DetectorNumberParameter(group='Misc', value=100, valueUnits='ms', editable=True),
@@ -38,7 +50,17 @@ class TISManager(DetectorManager):
         super().__init__(name, fullShape, [1, 2], model, parameters)
 
     def getLatestFrame(self):
-        return self._camera.grabFrame()
+        #dt = datetime.now()
+        #time_curr_bef = round(dt.microsecond/1000)
+        frame = self._camera.grabFrame()
+        #dt = datetime.now()
+        #time_curr_mid = round(dt.microsecond/1000)
+        frame = np.fliplr(frame)
+        #dt = datetime.now()
+        #time_curr_aft = round(dt.microsecond/1000)
+        #print(f'Time for grab: {time_curr_mid-time_curr_bef} ms')
+        #print(f'Time for flip: {time_curr_aft-time_curr_mid} ms')
+        return frame
 
     def setParameter(self, name, value):
         """Sets a parameter value and returns the value.

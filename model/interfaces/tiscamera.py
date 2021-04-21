@@ -6,6 +6,7 @@ Created on Thu Jan 07 14:11:00 2021
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 from pyicic import IC_ImagingControl
 
 
@@ -26,8 +27,9 @@ class CameraTIS:
         self.cam.gain.auto = False
         self.cam.exposure.auto = False
 
-        self.cam.enable_continuous_mode(True)  # image in continuous mode
+    def startLive(self):
         self.cam.start_live(show_display=False)  # start imaging
+        self.cam.enable_continuous_mode(True)  # image in continuous mode
         # self.cam.enable_trigger(True)  # camera will wait for trigger
         # self.cam.send_trigger()
         if not self.cam.callback_registered:
@@ -43,7 +45,9 @@ class CameraTIS:
         # New: just take the R-component, this should anyway contain most information in both cameras. Change this if we want to look at another color, like GFP!
         frame = np.array(frame[0], dtype='float64')
         # Check if below is giving the right dimensions out
+        #TODO: do this smarter, as I can just take every 3rd value instead of creating a reshaped 3D array and taking the first plane of that
         frame = np.reshape(frame,(self.shape[0],self.shape[1],3))[:,:,0]
+        print(np.max(frame))
         return frame
 
     def setPropertyValue(self, property_name, property_value):
@@ -64,7 +68,6 @@ class CameraTIS:
         return property_value
 
     def getPropertyValue(self, property_name):
-
         # Check if the property exists.
         if property_name == "gain":
             property_value = self.cam.gain.value

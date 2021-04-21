@@ -383,10 +383,10 @@ class GalvoScanDesigner(SignalDesigner):
         sig_dict = {parameterDict['target_device'][0]: fast_axis_signal,
                     parameterDict['target_device'][1]: slow_axis_signal}
 
-        plt.figure()
-        plt.plot(fast_axis_signal-0.01)
-        plt.plot(slow_axis_signal)
-        plt.show()
+        #plt.figure()
+        #plt.plot(fast_axis_signal-0.01)
+        #plt.plot(slow_axis_signal)
+        #plt.show()
 
         pixels_line = int(self.axis_length[0]/self.axis_step_size[0])
         # scanInfoDict: parameters that are important to relay to TTLCycleDesigner and/or image acquisition managers
@@ -538,7 +538,7 @@ class GalvoScanDesigner(SignalDesigner):
             time[7] = time[5] + t_scanline/2      
         # generate Bernstein polynomial with piecewise spline interpolation with the fixed points
         # give positions, velocity, acceleration, and time of fixed points
-        print([pos, vel, acc])
+        #print([pos, vel, acc])
         yder = np.array([pos, vel, acc]).T.tolist()
 
         bpoly = BPoly.from_derivatives(time, yder) # bpoly time unit: µs       

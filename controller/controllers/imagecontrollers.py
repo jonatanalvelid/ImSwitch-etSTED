@@ -540,6 +540,8 @@ class ImageController(LiveUpdatedController):
 
     def update(self, im, init):
         """ Update new image in the viewbox. """
+        #print(init)
+        #print(np.shape(im))
         if not init:
             self._widget.img.setOnlyRenderVisible(True, render=False)
             self._widget.levelsButton.setEnabled(True)
@@ -563,6 +565,7 @@ class ImageController(LiveUpdatedController):
 
         self._lastWidth = width
         self._lastHeight = height
+        #print([self._lastWidth, self._lastHeight])
 
     def getROIdata(self, image, roi):
         """ Returns the cropped image within the ROI. """

@@ -114,7 +114,7 @@ class APDManager(DetectorManager):
         return self.__shape
 
     def setShape(self, ysize, xsize):
-        self.__shape = (xsize, ysize)
+        self.__shape = (ysize, xsize)
 
     @property
     def pixelSize(self):

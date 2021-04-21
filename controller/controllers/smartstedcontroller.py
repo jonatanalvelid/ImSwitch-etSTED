@@ -6,6 +6,7 @@ Created on Tue Apr 13 2021
 import constants
 import os
 import importlib
+import time
 
 from datetime import datetime
 from inspect import signature
@@ -28,7 +29,6 @@ class SmartSTEDController(WidgetController):
         # Connect SmartSTEDWidget and communication channel signals
         self._widget.initiateButton.clicked.connect(self.initiate)
         self._widget.loadPipelineButton.clicked.connect(self.loadPipeline)
-        self._commChannel.endScan.connect(self.continueFastModality)
 
         # Create scatter plot item for sending to the viewbox while analysis is running
         self.__scatterPlot = pg.ScatterPlotItem()
@@ -49,6 +49,7 @@ class SmartSTEDController(WidgetController):
             self._commChannel.toggleLiveview.emit(True)
             self._commChannel.toggleBlockScanWidget.emit(False)
             self._commChannel.updateImage.connect(self.runPipeline)
+            self._commChannel.endScan.connect(self.continueFastModality)
 
             self.__scatterPlot.show()
             self._widget.initiateButton.setText('Stop')
@@ -58,6 +59,7 @@ class SmartSTEDController(WidgetController):
             self._commChannel.toggleLiveview.emit(False)
             self._commChannel.toggleBlockScanWidget.emit(True)
             self._commChannel.updateImage.disconnect(self.runPipeline)
+            self._commChannel.endScan.disconnect(self.continueFastModality)
             
             self.__param_vals = list()
             self.__scatterPlot.hide()
@@ -71,9 +73,14 @@ class SmartSTEDController(WidgetController):
             self._widget.initiateButton.setText('Paused')
             #self._widget.initiateButton.setEnabled(False)
             self.__running = False
+            # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
+            self._master.leicadmiManager.setCS()
         
     def continueFastModality(self):
-        if not self.__running:
+        # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
+        self._master.leicadmiManager.setFLUO()
+        self._master.leicadmiManager.setILshutter(1)
+        if self._widget.endlessScanCheck.isChecked() and not self.__running:
             # Connect communication channel signals
             self._commChannel.toggleLiveview.emit(True)
             self._commChannel.updateImage.connect(self.runPipeline)
@@ -81,6 +88,12 @@ class SmartSTEDController(WidgetController):
             self.__scatterPlot.show()
             self._widget.initiateButton.setText('Stop')
             self.__running = True
+        elif not self._widget.endlessScanCheck.isChecked():
+            self._widget.initiateButton.setText('Initiate')
+            self._commChannel.toggleBlockScanWidget.emit(True)
+            self.__running = False
+            self.__param_vals = list()
+            
 
     def loadPipeline(self):
         pipelineidx = self._widget.analysisPipelinePar.currentIndex()
@@ -98,12 +111,12 @@ class SmartSTEDController(WidgetController):
 
     def runPipeline(self, im, init):
         if not self.__busy:
+            self.__busy = True
             self.time_prev = self.time_curr_bef
             dt = datetime.now()
             self.time_curr_bef = round(dt.microsecond/1000)
             print(f'Time since last pipeline run: {self.time_curr_bef-self.time_prev} ms')
 
-            self.__busy = True
             coords_detected = self.pipeline(im, *self.__param_vals)
 
             dt = datetime.now()
@@ -114,8 +127,10 @@ class SmartSTEDController(WidgetController):
             self.updateScatter(coords_detected)
             if coords_detected.size != 0:
                 self.pauseFastModality()
-                coords_scan = self.transform(coords_detected)
-                self.runSlowScan(position=coords_scan)
+                coords_center_scan = self.transform(coords_detected)
+                #print(coords_detected)
+                #print(coords_center_scan)
+                self.runSlowScan(position=coords_center_scan)
 
     def updateScatter(self, coords):
         self.__scatterPlot.setData(x=coords[0,:], y=coords[1,:], pen=pg.mkPen(None), brush='g', symbol='x', size=25)

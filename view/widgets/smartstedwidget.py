@@ -53,6 +53,8 @@ class SmartSTEDWidget(Widget):
         self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
 
+        self.endlessScanCheck = QtGui.QCheckBox('Endless')
+
         self.im_param_label = QtGui.QLabel('ROI parameters')
         self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.im_size_label = QtGui.QLabel('ROI size (µm)')
@@ -74,6 +76,7 @@ class SmartSTEDWidget(Widget):
 
         # add general buttons to grid
         self.grid.addWidget(self.initiateButton, currentRow, 0)
+        self.grid.addWidget(self.endlessScanCheck, currentRow, 1)
         
         currentRow += 1
 

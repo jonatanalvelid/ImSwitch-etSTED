@@ -5,7 +5,7 @@ Created on Tue Mar 24 16:41:57 2020
 @author: _Xavi
 """
 from model import (
-    DetectorsManager, LasersManager, NidaqManager, PositionersManager, RecordingManager, RS232sManager, ScanManager, SLMManager
+    DetectorsManager, LasersManager, NidaqManager, PositionersManager, RecordingManager, RS232sManager, ScanManager, SLMManager, LeicaDMIManager
 )
 
 
@@ -19,7 +19,7 @@ class MasterController:
         # Init managers
         self.nidaqManager = NidaqManager(self.__setupInfo)
         self.rs232sManager = RS232sManager(self.__setupInfo.rs232devices)
-        self.detectorsManager = DetectorsManager(self.__setupInfo.detectors, updatePeriod=200,
+        self.detectorsManager = DetectorsManager(self.__setupInfo.detectors, updatePeriod=500,
                                                      nidaqManager=self.nidaqManager)
         self.recordingManager = RecordingManager(self.detectorsManager)
         self.scanManager = ScanManager(self.__setupInfo)  # Make sure compatibility
@@ -32,6 +32,8 @@ class MasterController:
                                                      
         if self.__setupInfo.availableWidgets.SLMWidget:
             self.slmManager = SLMManager(self.__setupInfo.slm)
+        if self.__setupInfo.availableWidgets.LeicaDMIManager:
+            self.leicadmiManager = LeicaDMIManager(rs232sManager=self.rs232sManager)
 
         # Connect signals
         self.detectorsManager.acquisitionStarted.connect(self.__commChannel.acquisitionStarted)

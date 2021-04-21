@@ -19,6 +19,7 @@ from view.guitools import ViewSetupInfo
 
 logging.getLogger("pyvisa").setLevel(logging.WARNING)
 logging.getLogger("lantz").setLevel(logging.WARNING)
+#logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 setupInfo = configfileutils.loadSetupInfo(ViewSetupInfo)
 app = QtGui.QApplication([])

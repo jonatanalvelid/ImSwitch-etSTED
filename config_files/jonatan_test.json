@@ -28,13 +28,13 @@
           "managerName": "TISManager",
           "managerProperties": {
             "purpose": "acquisition",
-            "cameraListIndex": 0,
+            "cameraListIndex": 1,
             "tis": {
               "exposure": 0,
               "gain": 0,
               "brightness": 0,
-              "image_width": 1280,
-              "image_height": 1024
+              "image_width": 2448,
+              "image_height": 2048
             }
           }
         }
@@ -181,6 +181,22 @@
                 "dsrdtr": "false",
                 "xonxoff": "false"
             }
+        },
+        "leicastand": {
+            "managerName": "RS232Manager",
+            "managerProperties": {
+                "port": "ASRL10::INSTR",
+                "encoding": "ascii",
+                "recv_termination": "\r",
+                "send_termination": "\r",
+                "baudrate": 19200,
+                "bytesize": 8,
+                "parity": "none",
+                "stopbits": 1,
+                "rtscts": "false",
+                "dsrdtr": "false",
+                "xonxoff": "false"
+            }
         }
     },
     "scan": {
@@ -207,7 +223,9 @@
         "ULensesWidget": false,
         "SLMWidget": false,
         "FocusLockWidget": false,
-        "MotCorrWidget": false
+        "MotCorrWidget": false,
+        "SmartSTEDWidget": true,
+        "LeicaDMIManager": true
     },
     "widgetLayout": {
         "lasersAndAlignmentInSingleDock": false

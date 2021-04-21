@@ -29,6 +29,7 @@ class WidgetAvailabilityInfo:
     FocusLockWidget: bool = True
     MotCorrWidget: bool = True
     SmartSTEDWidget: bool = True
+    LeicaDMIManager: bool = True
 
 
 @dataclass(frozen=True)

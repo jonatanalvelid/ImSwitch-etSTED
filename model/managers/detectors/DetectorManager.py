@@ -101,7 +101,6 @@ class DetectorManager(SignalInterface):
     @abstractmethod
     def pixelSize(self):
         return [1,1,1]
-        #return [self.__pixelsize_ax1, self.__pixelsize_ax2]
 
     @abstractmethod
     def setBinning(self, binning):

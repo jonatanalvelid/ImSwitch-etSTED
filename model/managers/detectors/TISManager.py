@@ -23,20 +23,10 @@ class TISManager(DetectorManager):
         for propertyName, propertyValue in webcamInfo.managerProperties['tis'].items():
             self._camera.setPropertyValue(propertyName, propertyValue)
 
-        #fullShape = (self._camera.getPropertyValue('image_height')[0],
-        #             self._camera.getPropertyValue('image_width')[0])
-
         fullShape = (self._camera.getPropertyValue('image_width'),
                      self._camera.getPropertyValue('image_height'))
 
-        #roi_filter = self._camera.cam.create_frame_filter('ROI'.encode('utf-8'))
-        #self._camera.cam.add_frame_filter_to_device(roi_filter)
-        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Top'.encode('utf-8'), 0)
-        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Left'.encode('utf-8'), 0)
-        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Height'.encode('utf-8'), self._camera.getPropertyValue('image_height'))
-        #self._camera.cam.frame_filter_set_parameter(roi_filter, 'Width'.encode('utf-8'), self._camera.getPropertyValue('image_width'))
-
-        self._camera.startLive()
+        self.startAcquisition()
 
         # Prepare parameters
         parameters = {
@@ -47,7 +37,7 @@ class TISManager(DetectorManager):
             #'image_height': DetectorNumberParameter(group='Misc', value=0, valueUnits='arb.u.', editable=False)
         }
 
-        super().__init__(name, fullShape, [1, 2], model, parameters)
+        super().__init__(name, fullShape, [1], model, parameters)
 
     def getLatestFrame(self):
         #dt = datetime.now()
@@ -96,21 +86,42 @@ class TISManager(DetectorManager):
         pass
 
     def startAcquisition(self):
-        pass
+        self._camera.start_live()
 
     def stopAcquisition(self):
-        pass
+        self._camera.stop_live()
     
     @property
     def pixelSize(self):
         return tuple([1, 1, 1])
 
     def crop(self, hpos, vpos, hsize, vsize):
-        pass
+        def cropAction():
+            self._camera.setROI(hpos, vpos, hsize, vsize)
+
+        self._performSafeCameraAction(cropAction)
+        
+        #TODO: unsure if frameStart is needed? Try without.
+        # This should be the only place where self.frameStart is changed
+        self._frameStart = (vpos, hpos)
+
+        # Only place self.shapes is changed
+        self._shape = (vsize, hsize)
 
     def show_dialog(self):
         "Manager: open camera settings dialog."
         self._camera.show_dialog()
+
+    def _performSafeCameraAction(self, function):
+        """ This method is used to change those camera properties that need
+        the camera to be idle to be able to be adjusted.
+        """
+        try:
+            function()
+        except:
+            self.stopAcquisition()
+            function()
+            self.startAcquisition()
 
         
 def getTISObj(cameraId):

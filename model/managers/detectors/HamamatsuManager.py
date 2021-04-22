@@ -70,6 +70,7 @@ class HamamatsuManager(DetectorManager):
         """Method to crop the frame read out by the camera. """
 
         def cropAction():
+            pass
             self._camera.setPropertyValue('subarray_vpos', 0)
             self._camera.setPropertyValue('subarray_hpos', 0)
             self._camera.setPropertyValue('subarray_vsize', self.fullShape[0])

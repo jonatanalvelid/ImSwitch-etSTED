@@ -213,6 +213,12 @@
         "TTLCycleDesigner": "PointScanTTLCycleDesigner"
     },
     "rois": {
+        "smartSTED_wf": {
+            "x": 400,
+            "y": 400,
+            "w": 1300,
+            "h": 1300
+        }
     },
     "availableWidgets": {
         "AlignWidgetXY": false,

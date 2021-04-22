@@ -476,7 +476,6 @@ class MockWebcam(Driver):
 
 class MockCameraTIS:
     def __init__(self):
-
         self.properties = {
             'image_height': 2048,
             'image_width': 2448,
@@ -505,17 +504,10 @@ class MockCameraTIS:
             yc = (np.random.rand()*2-1)*imgsize[1]/2 + imgsize[1]/2
             rv = multivariate_normal([xc, yc], [[50, 0], [0, 50]])
             img = np.random.rand()*peakmax*317*rv.pdf(pos)  #*317 to make peakval == 1
-            #img = img + 0.01*np.random.poisson(img)
+            img = img + 0.01*np.random.poisson(img)
         # add Poisson noise
-        #img = img + np.random.poisson(lam=noisemean, size=imgsize)
+        img = img + np.random.poisson(lam=noisemean, size=imgsize)
         return img
-
-    #def grabFrame(self, **kwargs):
-    #    img = np.zeros((500, 600))
-    #    beamCenter = [int(np.random.randn() * 1 + 250), int(np.random.randn() * 30 + 300)]
-    #    img[beamCenter[0] - 10:beamCenter[0] + 10,
-    #    beamCenter[1] - 10:beamCenter[1] + 10] = 1
-    #    return img
 
     def setPropertyValue(self, property_name, property_value):
         return property_value
@@ -524,6 +516,15 @@ class MockCameraTIS:
         return [self.properties[property_name]]
 
     def show_dialog(self):
+        pass
+
+    def start_live(self):
+        pass
+
+    def stop_live(self):
+        pass
+
+    def setROI(self, *args, **kwargs):
         pass
 
 

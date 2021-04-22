@@ -22,26 +22,30 @@ class CameraTIS:
 
         self.cam.open()
 
-        #TODO: clean this up, and probably put in a function, that I might even should call from TISManager probably?
-        roi_filter = self.cam.create_frame_filter('ROI'.encode('utf-8'))
-        self.cam.add_frame_filter_to_device(roi_filter)
-        self.cam.frame_filter_set_parameter(roi_filter, 'Top'.encode('utf-8'), 500)
-        self.cam.frame_filter_set_parameter(roi_filter, 'Left'.encode('utf-8'), 500)
-        self.cam.frame_filter_set_parameter(roi_filter, 'Height'.encode('utf-8'), 1500)
-        self.cam.frame_filter_set_parameter(roi_filter, 'Width'.encode('utf-8'), 1500)
-
         self.shape = (0,0)
         self.cam.colorenable = 0
         self.cam.gain.auto = False
         self.cam.exposure.auto = False
         self.cam.enable_continuous_mode(True)  # image in continuous mode
 
-    def startLive(self):
+    def setROI(self, hpos, vpos, hsize, vsize):
+        roi_filter = self.cam.create_frame_filter('ROI'.encode('utf-8'))
+        self.cam.add_frame_filter_to_device(roi_filter)
+        self.cam.frame_filter_set_parameter(roi_filter, 'Top'.encode('utf-8'), vpos)
+        self.cam.frame_filter_set_parameter(roi_filter, 'Left'.encode('utf-8'), hpos)
+        self.cam.frame_filter_set_parameter(roi_filter, 'Height'.encode('utf-8'), vsize)
+        self.cam.frame_filter_set_parameter(roi_filter, 'Width'.encode('utf-8'), hsize)
+
+    def start_live(self):
         self.cam.start_live(show_display=False)  # start imaging
         # self.cam.enable_trigger(True)  # camera will wait for trigger
         # self.cam.send_trigger()
+        #TODO: is the below really necessary? try without it
         if not self.cam.callback_registered:
             self.cam.register_frame_ready_callback()  # needed to wait for frame ready callback
+
+    def stop_live(self):
+        self.cam.stop_live()  # stop imaging
 
     def grabFrame(self):
         self.cam.reset_frame_ready()  # reset frame ready flag
@@ -90,6 +94,9 @@ class CameraTIS:
             print('Property', property_name, 'does not exist')
             return False
         return property_value
+
+    def reset_properties(self):
+        self.cam.reset_properties()
 
     def show_dialog(self):
         self.cam.show_property_dialog()

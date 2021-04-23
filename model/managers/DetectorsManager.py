@@ -76,6 +76,8 @@ class DetectorsManager(MultiManager, SignalInterface):
     def execOnAll(self, func, purpose=False):
         """ Executes a function on all sub-managers with a certain purpose, if such a condition. """
         if purpose:
+            #for managedDeviceName, subManager in self._subManagers.items():
+            #    print(subManager.name)
             #print(self._subManagers.items())
             return {managedDeviceName: func(subManager)
                     for managedDeviceName, subManager in self._subManagers.items()

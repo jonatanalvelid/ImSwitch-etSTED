@@ -58,7 +58,8 @@ class SettingsController(WidgetController):
         self.initParameters()
         execOnAll = self._master.detectorsManager.execOnAll
         execOnAll(lambda c: (self.updateParamsFromDetector(detector=c)))
-        execOnAll(lambda c: (self.adjustFrame(detector=c)))
+        print('do it!')
+        #execOnAll(lambda c: (self.adjustFrame(detector=c)))
         execOnAll(lambda c: (self.updateFrame(detector=c)))
         execOnAll(lambda c: (self.updateFrameActionButtons(detector=c)))
 
@@ -127,7 +128,7 @@ class SettingsController(WidgetController):
 
     def adjustFrame(self, *, detector=None):
         """ Crop detector and adjust frame. """
-
+        print('adj start')
         if detector is None:
             self.getDetectorManagerFrameExecFunc()(lambda c: self.adjustFrame(detector=c))
             return
@@ -140,14 +141,16 @@ class SettingsController(WidgetController):
         x0 = params.x0.value()
         y0 = params.y0.value()
 
-        # Round to closest "divisable by 4" value.
+        # Round to closest "divisable by 4/16" value.
+        #TODO: this should be done inside each cameras specific manager, as each camera is different. TIS limits: 16 in width, 4 in height.
         hpos = binning * y0
         vpos = binning * x0
         hsize = binning * height
         vsize = binning * width
 
-        hmodulus = 4
+        hmodulus = 16
         vmodulus = 4
+        print(f'SettingsController: crop with the following params: b {binning}, h {height}, w {width}, vp {vpos}, hp {hpos}, vs {vsize}, hs {hsize}.')
         vpos = int(vmodulus * np.ceil(vpos / vmodulus))
         hpos = int(hmodulus * np.ceil(hpos / hmodulus))
         vsize = int(vmodulus * np.ceil(vsize / vmodulus))
@@ -161,7 +164,7 @@ class SettingsController(WidgetController):
             self._commChannel.adjustFrame.emit(width, height)
             self._widget.ROI.hide()
 
-        self.updateParamsFromDetector(detector=detector)
+        #self.updateParamsFromDetector(detector=detector)
 
     def ROIchanged(self):
         """ Update parameters according to ROI. """

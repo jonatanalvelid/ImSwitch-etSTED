@@ -30,9 +30,9 @@
             "purpose": "acquisition",
             "cameraListIndex": 1,
             "tis": {
-              "exposure": 0,
-              "gain": 0,
-              "brightness": 0,
+              "exposure": 0.1,
+              "gain": 10,
+              "brightness": 10,
               "image_width": 2448,
               "image_height": 2048
             }
@@ -213,11 +213,23 @@
         "TTLCycleDesigner": "PointScanTTLCycleDesigner"
     },
     "rois": {
+        "Full chip": {
+            "x": 0,
+            "y": 0,
+            "w": 2048,
+            "h": 2448
+        },
         "smartSTED_wf": {
             "x": 400,
             "y": 400,
-            "w": 1300,
-            "h": 1300
+            "w": 1000,
+            "h": 1000
+        },
+        "test": {
+            "x": 800,
+            "y": 800,
+            "w": 100,
+            "h": 100
         }
     },
     "availableWidgets": {

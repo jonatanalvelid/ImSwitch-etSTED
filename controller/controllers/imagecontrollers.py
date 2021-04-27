@@ -58,8 +58,6 @@ class SettingsController(WidgetController):
         self.initParameters()
         execOnAll = self._master.detectorsManager.execOnAll
         execOnAll(lambda c: (self.updateParamsFromDetector(detector=c)))
-        print('do it!')
-        #execOnAll(lambda c: (self.adjustFrame(detector=c)))
         execOnAll(lambda c: (self.updateFrame(detector=c)))
         execOnAll(lambda c: (self.updateFrameActionButtons(detector=c)))
 
@@ -128,7 +126,6 @@ class SettingsController(WidgetController):
 
     def adjustFrame(self, *, detector=None):
         """ Crop detector and adjust frame. """
-        print('adj start')
         if detector is None:
             self.getDetectorManagerFrameExecFunc()(lambda c: self.adjustFrame(detector=c))
             return
@@ -145,12 +142,12 @@ class SettingsController(WidgetController):
         #TODO: this should be done inside each cameras specific manager, as each camera is different. TIS limits: 16 in width, 4 in height.
         hpos = binning * y0
         vpos = binning * x0
-        hsize = binning * height
-        vsize = binning * width
+        hsize = binning * width
+        vsize = binning * height
 
         hmodulus = 16
         vmodulus = 4
-        print(f'SettingsController: crop with the following params: b {binning}, h {height}, w {width}, vp {vpos}, hp {hpos}, vs {vsize}, hs {hsize}.')
+        #print(f'SettingsController: crop with the following params: b {binning}, h {height}, w {width}, vp {vpos}, hp {hpos}, vs {vsize}, hs {hsize}.')
         vpos = int(vmodulus * np.ceil(vpos / vmodulus))
         hpos = int(hmodulus * np.ceil(hpos / hmodulus))
         vsize = int(vmodulus * np.ceil(vsize / vmodulus))
@@ -358,8 +355,8 @@ class SettingsController(WidgetController):
                 fullChipShape = detector.fullShape
                 params.x0.setValue(0)
                 params.y0.setValue(0)
-                #params.width.setValue(fullChipShape[0])
-                #params.height.setValue(fullChipShape[1])
+                params.width.setValue(fullChipShape[0])
+                params.height.setValue(fullChipShape[1])
             else:
                 roiInfo = self._setupInfo.rois[frameMode]
                 params.x0.setValue(roiInfo.x)

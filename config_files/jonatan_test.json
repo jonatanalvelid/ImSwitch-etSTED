@@ -28,7 +28,7 @@
           "managerName": "TISManager",
           "managerProperties": {
             "purpose": "acquisition",
-            "cameraListIndex": 1,
+            "cameraListIndex": 0,
             "tis": {
               "exposure": 0.1,
               "gain": 10,
@@ -216,20 +216,14 @@
         "Full chip": {
             "x": 0,
             "y": 0,
-            "w": 2048,
-            "h": 2448
+            "w": 2448,
+            "h": 2048
         },
         "smartSTED_wf": {
             "x": 400,
             "y": 400,
             "w": 1000,
             "h": 1000
-        },
-        "test": {
-            "x": 800,
-            "y": 800,
-            "w": 100,
-            "h": 100
         }
     },
     "availableWidgets": {

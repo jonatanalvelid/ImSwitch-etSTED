@@ -26,9 +26,11 @@ class TISManager(DetectorManager):
 
         for propertyName, propertyValue in webcamInfo.managerProperties['tis'].items():
             self._camera.setPropertyValue(propertyName, propertyValue)
-
+        
         fullShape = (self._camera.getPropertyValue('image_width'),
                      self._camera.getPropertyValue('image_height'))
+
+        self.crop(hpos=0, vpos=0, hsize=fullShape[0], vsize=fullShape[1])
 
         #self.startAcquisition()
 
@@ -44,13 +46,11 @@ class TISManager(DetectorManager):
         super().__init__(name, fullShape, [1], model, parameters)
 
     def getLatestFrame(self):
-        print('getLatestFrame')
+        #print('getLatestFrame')
         if not self._adjustingParameters:
             #dt = datetime.now()
             #time_curr_bef = round(dt.microsecond/1000)
-            print('TISM: getLatestFrame pre grab')
             frame = self._camera.grabFrame()
-            print('TISM: getLatestFrame post grab')
             #dt = datetime.now()
             #time_curr_mid = round(dt.microsecond/1000)
             frame = np.fliplr(frame)
@@ -115,7 +115,7 @@ class TISManager(DetectorManager):
 
     def crop(self, hpos, vpos, hsize, vsize):
         def cropAction():
-            print(f'{self._camera.model}: crop frame to {hsize}x{vsize} at {hpos},{vpos}.')
+            #print(f'{self._camera.model}: crop frame to {hsize}x{vsize} at {hpos},{vpos}.')
             self._camera.setROI(hpos, vpos, hsize, vsize)
         
         self._performSafeCameraAction(cropAction)
@@ -139,11 +139,11 @@ class TISManager(DetectorManager):
             self.stopAcquisitionForROIChange()
         function()
         if wasrunning:
-            print('TISManager: performSafe: camera was running')
+            #print('TISManager: performSafe: camera was running')
             #self._camera.cam.open()
             self.startAcquisition()
-        else:
-            print('TISManager: performSafe: camera was not running')
+        #else:
+            #print('TISManager: performSafe: camera was not running')
         self._adjustingParameters = False
 
         

@@ -23,20 +23,20 @@
             }
         },
         "smartSTEDCamera": {
-          "analogChannel": null,
-          "digitalLine": null,
-          "managerName": "TISManager",
-          "managerProperties": {
-            "purpose": "acquisition",
-            "cameraListIndex": 0,
-            "tis": {
-              "exposure": 0.1,
-              "gain": 10,
-              "brightness": 10,
-              "image_width": 2448,
-              "image_height": 2048
+            "analogChannel": null,
+            "digitalLine": null,
+            "managerName": "TISManager",
+            "managerProperties": {
+                "purpose": "acquisition",
+                "cameraListIndex": 1,
+                "tis": {
+                    "exposure": 0.1,
+                    "gain": 10,
+                    "brightness": 10,
+                    "image_width": 2448,
+                    "image_height": 2048
+                }
             }
-          }
         }
     },
     "lasers": {
@@ -208,6 +208,11 @@
             "sampleRate": 100000.0
         }
     },
+    "slm": null,
+    "focusLock": null,
+    "smartSTED": {
+        "fastDetector": "smartSTEDCamera"
+    },
     "designers": {
         "scanDesigner": "GalvoScanDesigner",
         "TTLCycleDesigner": "PointScanTTLCycleDesigner"
@@ -224,6 +229,12 @@
             "y": 400,
             "w": 1000,
             "h": 1000
+        },
+        "SmallROI": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
         }
     },
     "availableWidgets": {
@@ -244,8 +255,5 @@
     },
     "scanDefaults": {
         "defaultScanFile": null
-    },
-    "smartSTED": {
-        "fastDetector": "smartSTEDCamera"
     }
 }

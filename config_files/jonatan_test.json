@@ -28,7 +28,7 @@
             "managerName": "TISManager",
             "managerProperties": {
                 "purpose": "acquisition",
-                "cameraListIndex": 1,
+                "cameraListIndex": 0,
                 "tis": {
                     "exposure": 0.1,
                     "gain": 10,

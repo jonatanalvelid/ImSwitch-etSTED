@@ -21,7 +21,7 @@ ic_ic = IC_ImagingControl.IC_ImagingControl()
 ic_ic.init_library()
 cam_names = ic_ic.get_unique_device_names()
 print(cam_names)
-cam = ic_ic.get_device(cam_names[1])
+cam = ic_ic.get_device(cam_names[0])
 # print(self.cam.list_property_names())
 
 cam.open()

@@ -334,7 +334,7 @@
     "TTLCycleDesigner": "BetaTTLCycleDesigner"
   },
   "slm": {
-    "monitorIdx": 1,
+    "monitorIdx": 2,
     "width": 792,
     "height": 600,
     "wavelength": 775,

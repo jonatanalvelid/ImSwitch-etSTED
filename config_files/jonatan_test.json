@@ -28,11 +28,11 @@
             "managerName": "TISManager",
             "managerProperties": {
                 "purpose": "acquisition",
-                "cameraListIndex": 0,
+                "cameraListIndex": 1,
                 "tis": {
-                    "exposure": 0.1,
-                    "gain": 10,
-                    "brightness": 10,
+                    "exposure": 1,
+                    "gain": 1,
+                    "brightness": 1,
                     "image_width": 2448,
                     "image_height": 2048
                 }
@@ -40,6 +40,21 @@
         }
     },
     "lasers": {
+        "488": {
+            "analogChannel": null,
+            "digitalLine": 0,
+            "managerName": "CoboltLaserManager",
+            "managerProperties": {
+                "digitalDriver": "cobolt.cobolt0601.Cobolt0601_f2",
+                "digitalPorts": [
+                    "ASRL9::INSTR"
+                ]
+            },
+            "wavelength": 488,
+            "valueRangeMin": 0,
+            "valueRangeMax": 200,
+            "valueRangeStep": 1
+        },
         "561": {
             "analogChannel": null,
             "digitalLine": 1,
@@ -235,6 +250,12 @@
             "y": 0,
             "w": 256,
             "h": 256
+        },
+        "80x80umscan": {
+            "x": 300,
+            "y": 300,
+            "w": 1800,
+            "h": 1800
         }
     },
     "availableWidgets": {

@@ -46,20 +46,22 @@ class SmartSTEDController(WidgetController):
             self.loadTransform()
 
             # Connect communication channel signals
-            self._commChannel.toggleLiveview.emit(True)
+            #self._commChannel.toggleLiveview.emit(True)
             self._commChannel.toggleBlockScanWidget.emit(False)
             self._commChannel.updateImage.connect(self.runPipeline)
             self._commChannel.endScan.connect(self.continueFastModality)
+            self._master.lasersManager.execOn('488', lambda l: l.setEnabled(True))
 
             self.__scatterPlot.show()
             self._widget.initiateButton.setText('Stop')
             self.__running = True
         else:
             # Disconnect communication channel signals
-            self._commChannel.toggleLiveview.emit(False)
+            #self._commChannel.toggleLiveview.emit(False)
             self._commChannel.toggleBlockScanWidget.emit(True)
             self._commChannel.updateImage.disconnect(self.runPipeline)
             self._commChannel.endScan.disconnect(self.continueFastModality)
+            self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
             
             self.__param_vals = list()
             self.__scatterPlot.hide()
@@ -69,21 +71,23 @@ class SmartSTEDController(WidgetController):
     def pauseFastModality(self):
         if self.__running:
             self._commChannel.updateImage.disconnect(self.runPipeline)
-            self._commChannel.toggleLiveview.emit(False)
+            #self._commChannel.toggleLiveview.emit(False)
             self._widget.initiateButton.setText('Paused')
+            self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
             #self._widget.initiateButton.setEnabled(False)
             self.__running = False
             # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
-            self._master.leicadmiManager.setCS()
+            #self._master.leicadmiManager.setCS()
         
     def continueFastModality(self):
         # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
-        self._master.leicadmiManager.setFLUO()
-        self._master.leicadmiManager.setILshutter(1)
+        #self._master.leicadmiManager.setFLUO()
+        #self._master.leicadmiManager.setILshutter(1)
         if self._widget.endlessScanCheck.isChecked() and not self.__running:
             # Connect communication channel signals
-            self._commChannel.toggleLiveview.emit(True)
+            #self._commChannel.toggleLiveview.emit(True)
             self._commChannel.updateImage.connect(self.runPipeline)
+            self._master.lasersManager.execOn('488', lambda l: l.setEnabled(True))
 
             self.__scatterPlot.show()
             self._widget.initiateButton.setText('Stop')

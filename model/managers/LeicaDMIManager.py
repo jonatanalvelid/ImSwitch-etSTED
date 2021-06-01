@@ -42,10 +42,12 @@ class LeicaDMIManager:
         cmd = '47022 -1 ' + str(movetopos)
         self._rs232Manager.send(cmd)
 
+    # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
     def setFLUO(self, *args):
         cmd = '70029 10 x'
         self._rs232Manager.send(cmd)
 
+    # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
     def setCS(self, *args):
         cmd = '70029 14 x'
         self._rs232Manager.send(cmd)

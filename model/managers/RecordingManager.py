@@ -58,6 +58,7 @@ class RecordingManager(SignalInterface):
             file = h5py.File(f'{savename}_{detectorName}.hdf5', 'w', track_order=True)
             
             shape = self.__detectorsManager[detectorName].shape
+            print(shape)
             dataset = file.create_dataset(f'data:{detectorName}', (shape[0], shape[1]), dtype='i2')
 
             for key, value in attrs[detectorName].items():

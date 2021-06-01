@@ -10,6 +10,7 @@ import sys
 import time
 from dataclasses import dataclass
 from typing import Any
+from datetime import datetime
 
 import numpy as np
 from framework import Timer
@@ -610,6 +611,7 @@ class RecorderController(WidgetController):
         self._commChannel.updateRecFrameNum.connect(self.updateRecFrameNum)
         self._commChannel.updateRecTime.connect(self.updateRecTime)
         self._commChannel.endScan.connect(self.scanDone)
+        self._commChannel.snapImage.connect(self.snap)
 
         # Connect RecordingWidget signals
         self._widget.detectorList.currentIndexChanged.connect(self.setDetectorsToCapture)
@@ -655,7 +657,7 @@ class RecorderController(WidgetController):
             self._widget.filenameEdit.setText('Current time')
 
     def snap(self):
-        """ Take a snap and save it to a .tiff file. """
+        """ Take a snap and save it to a .hdf5 file. """
         detectorNames = self.getDetectorsToCapture()
         folder = self._widget.folderEdit.text()
         if not os.path.exists(folder):
@@ -847,6 +849,6 @@ class RecorderController(WidgetController):
             filename = self._widget.filenameEdit.text()
 
         else:
-            filename = time.strftime('%Hh%Mm%Ss')
+            filename = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
 
         return filename

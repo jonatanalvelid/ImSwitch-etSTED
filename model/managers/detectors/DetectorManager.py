@@ -85,6 +85,10 @@ class DetectorManager(SignalInterface):
     def shape(self):
         return self.__shape
 
+    @shape.setter
+    def shape(self, crop_shape):
+        self.__shape = crop_shape
+
     @property
     def fullShape(self):
         return self.__fullShape

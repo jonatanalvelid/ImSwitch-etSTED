@@ -25,4 +25,5 @@ def pipeline_maxpeaks(img, min_dist=10, thresh_abs=10, num_peaks=100):
     # if there are detected peaks: just return the first in the list. This is for testing, make a smarter choice later if multiple are detected (?)
     if coords.size:
         coords = np.array([[coords[0,0]],[coords[1,0]]])
+    #print(coords)
     return coords

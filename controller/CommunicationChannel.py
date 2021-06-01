@@ -42,6 +42,8 @@ class CommunicationChannel(SignalInterface):
 
     endScan = Signal()
 
+    snapImage = Signal()
+
     moveZstage = Signal(float)  # (step)
 
     toggleLiveview = Signal(bool)

@@ -30,8 +30,6 @@ class TISManager(DetectorManager):
         fullShape = (self._camera.getPropertyValue('image_width'),
                      self._camera.getPropertyValue('image_height'))
 
-        self.crop(hpos=0, vpos=0, hsize=fullShape[0], vsize=fullShape[1])
-
         #self.startAcquisition()
 
         # Prepare parameters
@@ -44,6 +42,8 @@ class TISManager(DetectorManager):
         }
 
         super().__init__(name, fullShape, [1], model, parameters)
+
+        self.crop(hpos=0, vpos=0, hsize=fullShape[0], vsize=fullShape[1])
 
     def getLatestFrame(self):
         #print('getLatestFrame')
@@ -122,8 +122,8 @@ class TISManager(DetectorManager):
         #TODO: unsure if frameStart is needed? Try without.
         # This should be the only place where self.frameStart is changed
         self._frameStart = (vpos, hpos)
-        # Only place self.shapes is changed
-        self._shape = (vsize, hsize)
+        # Only place self.__shape is changed
+        self.shape = (vsize, hsize)
 
     def show_dialog(self):
         "Manager: open camera settings dialog."

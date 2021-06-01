@@ -26,6 +26,8 @@ class SmartSTEDController(WidgetController):
 
         self.analysisDir = os.path.join(constants.rootFolderPath, 'analysispipelines')
 
+        self.__savefolder = "C:\\DataImswitch\\logs"
+
         # Connect SmartSTEDWidget and communication channel signals
         self._widget.initiateButton.clicked.connect(self.initiate)
         self._widget.loadPipelineButton.clicked.connect(self.loadPipeline)
@@ -33,7 +35,15 @@ class SmartSTEDController(WidgetController):
         # Create scatter plot item for sending to the viewbox while analysis is running
         self.__scatterPlot = pg.ScatterPlotItem()
         self.addScatter()
-
+        
+        self.__timelog = {
+            "pipeline_start": "",
+            "pipeline_end": "",
+            "coord_transf_start": "",
+            "coord_transf_end": "",
+            "scan_start": "",
+            "scan_end": ""
+        }
         self.__running = False
         self.__busy = False
         self.time_curr_bef = 0
@@ -49,6 +59,7 @@ class SmartSTEDController(WidgetController):
             #self._commChannel.toggleLiveview.emit(True)
             self._commChannel.toggleBlockScanWidget.emit(False)
             self._commChannel.updateImage.connect(self.runPipeline)
+            self._commChannel.endScan.connect(self.saveScan)
             self._commChannel.endScan.connect(self.continueFastModality)
             self._master.lasersManager.execOn('488', lambda l: l.setEnabled(True))
 
@@ -60,6 +71,7 @@ class SmartSTEDController(WidgetController):
             #self._commChannel.toggleLiveview.emit(False)
             self._commChannel.toggleBlockScanWidget.emit(True)
             self._commChannel.updateImage.disconnect(self.runPipeline)
+            self._commChannel.endScan.disconnect(self.saveScan)
             self._commChannel.endScan.disconnect(self.continueFastModality)
             self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
             
@@ -68,21 +80,26 @@ class SmartSTEDController(WidgetController):
             self._widget.initiateButton.setText('Initiate')
             self.__running = False
         
+    def saveScan(self):
+        self.__timelog["scan_end"] = datetime.now().strftime('%Ss%fus')
+        self._commChannel.snapImage.emit()
+        filename = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
+        name = os.path.join(self.__savefolder, filename) + '_log'
+        savename = guitools.getUniqueName(name)
+        timelog = [f'{key}: {self.__timelog[key]}' for key in self.__timelog]
+        with open(f'{savename}.txt', 'w') as f:
+            [f.write(f'{st}\n') for st in timelog]
+
     def pauseFastModality(self):
         if self.__running:
             self._commChannel.updateImage.disconnect(self.runPipeline)
             #self._commChannel.toggleLiveview.emit(False)
-            self._widget.initiateButton.setText('Paused')
+            #self._widget.initiateButton.setText('Paused')
             self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
             #self._widget.initiateButton.setEnabled(False)
             self.__running = False
-            # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
-            #self._master.leicadmiManager.setCS()
         
     def continueFastModality(self):
-        # the serial command automatically does sleep until a reply is gotten, which it gets after flip is finished
-        #self._master.leicadmiManager.setFLUO()
-        #self._master.leicadmiManager.setILshutter(1)
         if self._widget.endlessScanCheck.isChecked() and not self.__running:
             # Connect communication channel signals
             #self._commChannel.toggleLiveview.emit(True)
@@ -94,6 +111,8 @@ class SmartSTEDController(WidgetController):
             self.__running = True
         elif not self._widget.endlessScanCheck.isChecked():
             self._widget.initiateButton.setText('Initiate')
+            self._commChannel.endScan.disconnect(self.saveScan)
+            self._commChannel.endScan.disconnect(self.continueFastModality)
             self._commChannel.toggleBlockScanWidget.emit(True)
             self.__running = False
             self.__param_vals = list()
@@ -115,26 +134,29 @@ class SmartSTEDController(WidgetController):
 
     def runPipeline(self, im, init):
         if not self.__busy:
+            self.__timelog["pipeline_start"] = datetime.now().strftime('%Ss%fus')
+
             self.__busy = True
-            self.time_prev = self.time_curr_bef
+            
             dt = datetime.now()
             self.time_curr_bef = round(dt.microsecond/1000)
-            print(f'Time since last pipeline run: {self.time_curr_bef-self.time_prev} ms')
 
             coords_detected = self.pipeline(im, *self.__param_vals)
 
+            self.__timelog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             dt = datetime.now()
             self.time_curr_aft = round(dt.microsecond/1000)
             print(f'Time for pipeline: {self.time_curr_aft-self.time_curr_bef} ms')
 
             self.__busy = False
-            self.updateScatter(coords_detected)
             if coords_detected.size != 0:
                 self.pauseFastModality()
+                self.__timelog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
                 coords_center_scan = self.transform(coords_detected)
-                #print(coords_detected)
-                #print(coords_center_scan)
+                self.__timelog["coord_transf_end"] = datetime.now().strftime('%Ss%fus')
+                self.__timelog["scan_start"] = datetime.now().strftime('%Ss%fus')
                 self.runSlowScan(position=coords_center_scan)
+            self.updateScatter(coords_detected)
 
     def updateScatter(self, coords):
         self.__scatterPlot.setData(x=coords[0,:], y=coords[1,:], pen=pg.mkPen(None), brush='g', symbol='x', size=25)

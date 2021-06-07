@@ -3,6 +3,7 @@ Created on Tue Apr 13 2021
 
 @author: jonatanalvelid
 """
+from numpy.lib.function_base import asarray_chkfinite
 import constants
 import os
 import importlib
@@ -28,9 +29,13 @@ class SmartSTEDController(WidgetController):
 
         self.__savefolder = "C:\\DataImswitch\\logs"
 
+        # Initiate coordinate transform parameters
+        self.__transformCoeffs = np.ones(20)
+
         # Connect SmartSTEDWidget and communication channel signals
         self._widget.initiateButton.clicked.connect(self.initiate)
         self._widget.loadPipelineButton.clicked.connect(self.loadPipeline)
+        self._widget.coordTransfCalibButton.clicked.connect(self.calibrationLaunch)
 
         # Create scatter plot item for sending to the viewbox while analysis is running
         self.__scatterPlot = pg.ScatterPlotItem()
@@ -116,7 +121,6 @@ class SmartSTEDController(WidgetController):
             self._commChannel.toggleBlockScanWidget.emit(True)
             self.__running = False
             self.__param_vals = list()
-            
 
     def loadPipeline(self):
         pipelineidx = self._widget.analysisPipelinePar.currentIndex()
@@ -131,6 +135,16 @@ class SmartSTEDController(WidgetController):
         transformidx = self._widget.transformPipelinePar.currentIndex()
         transformname = self._widget.transformPipelines[transformidx]
         self.transform = getattr(importlib.import_module(f'smartsted.transform_pipelines.{transformname}'), f'{transformname}')
+
+    def calibrationLaunch(self):
+        self._widget.launchCoordTransform()
+        self._widget.coordTransformWidget.saveCalibButton.connect(self.calibrationFinish)
+
+    def calibrationFinish(self):
+        self.__transformCoeffs = self._widget.coordTransformWidget.transformParams
+        self._widget.coordTransformWidget.saveCalibButton.disconnect(self.calibrationFinish)
+        self._widget.hideCoordTransform()
+
 
     def runPipeline(self, im, init):
         if not self.__busy:
@@ -152,7 +166,7 @@ class SmartSTEDController(WidgetController):
             if coords_detected.size != 0:
                 self.pauseFastModality()
                 self.__timelog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
-                coords_center_scan = self.transform(coords_detected)
+                coords_center_scan = self.transform(coords_detected, self.__transformCoeffs)
                 self.__timelog["coord_transf_end"] = datetime.now().strftime('%Ss%fus')
                 self.__timelog["scan_start"] = datetime.now().strftime('%Ss%fus')
                 self.runSlowScan(position=coords_center_scan)
@@ -243,3 +257,41 @@ class SmartSTEDController(WidgetController):
 
         return analogParameterDict, digitalParameterDict
 
+    def coordinateTransformCalibrate(self, lo_res_coords, hi_res_coords):
+        """ Third-order polynomial fitting with least-squares Levenberg-Marquart algorithm.
+        """
+        from scipy.optimize import least_squares
+        
+        # prepare data and init guess
+        c_init = np.hstack([np.zeros(10), np.zeros(10)])
+        xdata = lo_res_coords[:].astype(np.float32)
+        ydata = hi_res_coords[:].astype(np.float32)
+        initguess = c_init.astype(np.float32)
+        
+        # fit
+        res_lsq = least_squares(poly_thirdorder, initguess, args=(xdata, ydata), method='lm')
+        transformCoeffs = res_lsq.x
+        self.__transformCoeffs = transformCoeffs
+
+    def poly_thirdorder(self, a, x, y):
+        """ Polynomial function that will be fit in the least-squares fit. 
+        """
+        res = []
+        for i in range(0, len(x)):
+            c1 = x[i,0]
+            c2 = x[i,1]
+            x_i1 = a[0]*c1**3 + a[1]*c2**3 + a[2]*c2*c1**2 + a[3]*c1*c2**2 + a[4]*c1**2 + a[5]*c2**2 + a[6]*c1*c2 + a[7]*c1 + a[8]*c2 + a[9]
+            x_i2 = a[10]*c1**3 + a[11]*c2**3 + a[12]*c2*c1**2 + a[13]*c1*c2**2 + a[14]*c1**2 + a[15]*c2**2 + a[16]*c1*c2 + a[17]*c1 + a[18]*c2 + a[19]
+            res.append(x_i1 - y[i,0])
+            res.append(x_i2 - y[i,1])
+        return res
+    
+    def poly_thirdorder_ret(a, x):
+        """ Use for plotting the least-squares fit results.
+        """
+        c1 = x[0]
+        c2 = x[1]
+        x_i1 = a[0]*c1**3 + a[1]*c2**3 + a[2]*c2*c1**2 + a[3]*c1*c2**2 + a[4]*c1**2 + a[5]*c2**2 + a[6]*c1*c2 + a[7]*c1 + a[8]*c2 + a[9]
+        x_i2 = a[10]*c1**3 + a[11]*c2**3 + a[12]*c2*c1**2 + a[13]*c1*c2**2 + a[14]*c1**2 + a[15]*c2**2 + a[16]*c1*c2 + a[17]*c1 + a[18]*c2 + a[19]
+        return (x_i1, x_i2)
+         

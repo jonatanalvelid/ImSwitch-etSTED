@@ -52,6 +52,8 @@ class SmartSTEDWidget(Widget):
         self.initiateButton = guitools.BetterPushButton('Initiate smartSTED')
         self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
+        
+        self.coordTransfCalibButton = guitools.BetterPushButton('Transform calibration')
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
 
@@ -67,6 +69,8 @@ class SmartSTEDWidget(Widget):
         self.dw_time_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.dw_time_edit = QtGui.QLineEdit(str(0.01))
 
+        self.coordTransformWidget = CoordTransformWidget()
+        self.coordTransformWidget.initControls()
 
         self.grid = QtGui.QGridLayout()
         self.setLayout(self.grid)
@@ -95,6 +99,7 @@ class SmartSTEDWidget(Widget):
         self.grid.addWidget(self.loadPipelineButton, currentRow, 0)
         self.grid.addWidget(self.analysisPipelinePar, currentRow, 1)
         self.grid.addWidget(self.transformPipelinePar, currentRow, 2)
+        self.grid.addWidget(self.coordTransfCalibButton, currentRow, 3)
 
     def initParamFields(self, parameters: dict):
         # remove previous parameter fields for the previously loaded pipeline
@@ -123,7 +128,46 @@ class SmartSTEDWidget(Widget):
 
                 currentRow += 1
 
+    def launchCoordTransform(self):
+        self.coordTransformWidget.show()
+
+    def hideCoordTransform(self):
+        self.coordTransformWidget.hide()
 
 
+class CoordTransformWidget(Widget):
+    ''' Pop-up widget for the coordinate transform between the two smartSTED modalities. '''
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
+        self.loadLoResButton = guitools.BetterPushButton('Load low-res calibration image')
+        self.loadHiResButton = guitools.BetterPushButton('Load high-res calibration image')
+        self.saveCalibButton = guitools.BetterPushButton('Save calibration')
+
+        self.loResVb = self.addViewBox(row=1, col=1)
+        self.hiResVb = self.addViewBox(row=1, col=1)
+
+        self.loResImg = guitools.OptimizedImageItem(axisOrder = 'row-major')
+        self.hiResImg = guitools.OptimizedImageItem(axisOrder = 'row-major')
+        self.loResImg.translate(-0.5, -0.5)
+        self.hiResImg.translate(-0.5, -0.5)
+
+        self.loResVb.addItem(self.loResImg)
+        self.hiResVb.additem(self.hiResImg)
+        self.loResVb.setAspectLocked(True)
+        self.hiResVb.setAspectLocked(True)
+
+        self.grid = QtGui.QGridLayout()
+        self.setLayout(self.grid)
+    
+    def initControls(self, *args):
+        currentRow = 0
+        self.grid.addWidget(self.loadLoResButton, currentRow, 0)
+        self.grid.addWidget(self.loadHiResButton, currentRow, 1)
+        self.grid.addWidget(self.saveCalibButton, currentRow, 1)
+        
+        currentRow += 1
+        self.grid.addWidget(self.loResVb, currentRow, 0)
+        self.grid.addWidget(self.hiResVb, currentRow, 1)
+

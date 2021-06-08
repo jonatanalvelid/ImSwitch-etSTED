@@ -7,10 +7,12 @@ from numpy.lib.function_base import asarray_chkfinite
 import constants
 import os
 import importlib
-import time
+import h5py
 
 from datetime import datetime
 from inspect import signature
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 
 import pyqtgraph as pg
 import numpy as np
@@ -31,11 +33,24 @@ class SmartSTEDController(WidgetController):
 
         # Initiate coordinate transform parameters
         self.__transformCoeffs = np.ones(20)
+        self.__loResCoords = list()
+        self.__hiResCoords = list()
+        self.__loResCoordsPx = list()
+        self.__hiResCoordsPx = list()
+        self.__hiResPxSize = 1
+        self.__loResPxSize = 1
+        self.__hiResSize = 1
 
         # Connect SmartSTEDWidget and communication channel signals
         self._widget.initiateButton.clicked.connect(self.initiate)
         self._widget.loadPipelineButton.clicked.connect(self.loadPipeline)
         self._widget.coordTransfCalibButton.clicked.connect(self.calibrationLaunch)
+        self._widget.coordTransformWidget.saveCalibButton.clicked.connect(self.calibrationFinish)
+        self._widget.coordTransformWidget.resetCoordsButton.clicked.connect(self.resetCalibrationCoords)
+        self._widget.coordTransformWidget.loadLoResButton.clicked.connect(lambda: self.loadCalibImage('lo'))
+        self._widget.coordTransformWidget.loadHiResButton.clicked.connect(lambda: self.loadCalibImage('hi'))
+        self._widget.coordTransformWidget.loResVb.scene().sigMouseClicked.connect(self.mouseClickedCoordTransformLo)
+        self._widget.coordTransformWidget.hiResVb.scene().sigMouseClicked.connect(self.mouseClickedCoordTransformHi)
 
         # Create scatter plot item for sending to the viewbox while analysis is running
         self.__scatterPlot = pg.ScatterPlotItem()
@@ -52,6 +67,37 @@ class SmartSTEDController(WidgetController):
         self.__running = False
         self.__busy = False
         self.time_curr_bef = 0
+
+    def mouseClickedCoordTransformLo(self, event):
+        #print(event.pos())
+        clickPos = self._widget.coordTransformWidget.loResVb.mapSceneToView(event.pos())
+        pos_px = (np.around(clickPos.x()), np.around(clickPos.y()))
+        pos = (np.around(pos_px[0]*self.__loResPxSize, 3), np.around(pos_px[1]*self.__loResPxSize, 3))
+        self.__loResCoordsPx.append(pos_px)
+        self.__loResCoords.append(pos)
+        #print(f'X,Y: {pos}')
+        #print(self.__loResCoords)
+        self._widget.coordTransformWidget.loResScatterPlot.setData(x=np.array(self.__loResCoordsPx)[:,0], y=np.array(self.__loResCoordsPx)[:,1], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
+
+    def mouseClickedCoordTransformHi(self, event):
+        #print(event.pos())
+        clickPos = self._widget.coordTransformWidget.hiResVb.mapSceneToView(event.pos())
+        pos_px = (np.around(clickPos.x()), np.around(clickPos.y()))
+        pos = (np.around(pos_px[0]*self.__hiResPxSize - self.__hiResSize/2, 3), -1 * np.around(pos_px[1]*self.__hiResPxSize - self.__hiResSize/2, 3))
+        self.__hiResCoordsPx.append(pos_px)
+        self.__hiResCoords.append(pos)
+        #print(f'X,Y: {pos}')
+        #print(self.__hiResCoords)
+        self._widget.coordTransformWidget.hiResScatterPlot.setData(x=np.array(self.__hiResCoordsPx)[:,0], y=np.array(self.__hiResCoordsPx)[:,1], pen=pg.mkPen(None), brush='r', symbol='x', size=25)
+
+    def resetCalibrationCoords(self):
+        self.__hiResCoords = list()
+        self.__loResCoords = list()
+        self.__hiResCoordsPx = list()
+        self.__loResCoordsPx = list()
+        self._widget.coordTransformWidget.loResScatterPlot.clear()
+        self._widget.coordTransformWidget.hiResScatterPlot.clear()
+        self._widget.coordTransformWidget.transformScatterPlot.clear()
 
     def initiate(self):
         if not self.__running:
@@ -138,14 +184,69 @@ class SmartSTEDController(WidgetController):
 
     def calibrationLaunch(self):
         self._widget.launchCoordTransform()
-        self._widget.coordTransformWidget.saveCalibButton.connect(self.calibrationFinish)
 
     def calibrationFinish(self):
-        self.__transformCoeffs = self._widget.coordTransformWidget.transformParams
-        self._widget.coordTransformWidget.saveCalibButton.disconnect(self.calibrationFinish)
-        self._widget.hideCoordTransform()
+        self.coordinateTransformCalibrate()
+        print(self.__transformCoeffs)
 
+        # plot the resulting transformed low-res coordinates on the hi-res image
+        coords_transf = []
+        loResData = np.array([*self.__loResCoords]).astype(np.float32)
+        for i in range(0,len(loResData)):
+            pos = self.poly_thirdorder_transform(self.__transformCoeffs, loResData[i])
+            pos_px = (np.around((pos[0] + self.__hiResSize/2)/self.__hiResPxSize, 0), np.around((-1 * pos[1] + self.__hiResSize/2)/self.__hiResPxSize, 0))
+            coords_transf.append(pos_px)
+        coords_transf = np.array(coords_transf)
+        self._widget.coordTransformWidget.transformScatterPlot.setData(x=coords_transf[:,0], y=coords_transf[:,1], pen=pg.mkPen(None), brush='b', symbol='x', size=20)
 
+    def openFolder(self):
+        """ Opens current folder in File Explorer. """
+        Tk().withdraw()
+        filename = askopenfilename()
+        return filename
+
+    def loadCalibImage(self, modality):
+        # open gui to choose file
+        img_filename = self.openFolder()
+        # load img data from file
+        with h5py.File(img_filename, "r") as f:
+            img_key = list(f.keys())[0]
+            pixelsize = f.attrs['element_size_um'][1]
+            img_data = np.array(f[img_key])
+            imgsize = pixelsize*np.size(img_data,0)
+        # view data in corresponding viewbox
+        self.updateCalibImage(img_data, modality)
+        if modality == 'hi':
+            self.__hiResCoords = list()
+            self.__hiResPxSize = pixelsize
+            self.__hiResSize = imgsize
+        elif modality == 'lo':
+            self.__loResCoords = list()
+            self.__loResPxSize = pixelsize
+
+    def updateCalibImage(self, img_data, modality):
+        """ Update new image in the viewbox. """
+        if modality == 'hi':
+            img_box = self._widget.coordTransformWidget.hiResImg
+        elif modality == 'lo':
+            img_box = self._widget.coordTransformWidget.loResImg
+
+        img_box.setOnlyRenderVisible(True, render=False)
+        img_box.setImage(img_data, autoLevels=True, autoDownsample=False)
+        img_shape = np.shape(img_data)
+        self.adjustFrame(img_shape[1], img_shape[0], modality)
+
+    def adjustFrame(self, width, height, modality):
+        """ Adjusts the viewbox to a new width and height. """
+        if modality == 'hi':
+            img_vb = self._widget.coordTransformWidget.hiResVb
+            img_box = self._widget.coordTransformWidget.hiResImg
+        elif modality == 'lo':
+            img_vb = self._widget.coordTransformWidget.loResVb
+            img_box = self._widget.coordTransformWidget.loResImg
+        guitools.setBestImageLimits(img_vb, width, height)
+        img_box.render()
+        
     def runPipeline(self, im, init):
         if not self.__busy:
             self.__timelog["pipeline_start"] = datetime.now().strftime('%Ss%fus')
@@ -257,19 +358,19 @@ class SmartSTEDController(WidgetController):
 
         return analogParameterDict, digitalParameterDict
 
-    def coordinateTransformCalibrate(self, lo_res_coords, hi_res_coords):
+    def coordinateTransformCalibrate(self):
         """ Third-order polynomial fitting with least-squares Levenberg-Marquart algorithm.
         """
         from scipy.optimize import least_squares
         
         # prepare data and init guess
         c_init = np.hstack([np.zeros(10), np.zeros(10)])
-        xdata = lo_res_coords[:].astype(np.float32)
-        ydata = hi_res_coords[:].astype(np.float32)
+        xdata = np.array([*self.__loResCoords]).astype(np.float32)
+        ydata = np.array([*self.__hiResCoords]).astype(np.float32)
         initguess = c_init.astype(np.float32)
         
         # fit
-        res_lsq = least_squares(poly_thirdorder, initguess, args=(xdata, ydata), method='lm')
+        res_lsq = least_squares(self.poly_thirdorder, initguess, args=(xdata, ydata), method='lm')
         transformCoeffs = res_lsq.x
         self.__transformCoeffs = transformCoeffs
 
@@ -286,7 +387,7 @@ class SmartSTEDController(WidgetController):
             res.append(x_i2 - y[i,1])
         return res
     
-    def poly_thirdorder_ret(a, x):
+    def poly_thirdorder_transform(self, a, x):
         """ Use for plotting the least-squares fit results.
         """
         c1 = x[0]

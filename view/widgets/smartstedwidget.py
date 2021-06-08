@@ -69,7 +69,7 @@ class SmartSTEDWidget(Widget):
         self.dw_time_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.dw_time_edit = QtGui.QLineEdit(str(0.01))
 
-        self.coordTransformWidget = CoordTransformWidget()
+        self.coordTransformWidget = CoordTransformWidget(*args, **kwargs)
         self.coordTransformWidget.initControls()
 
         self.grid = QtGui.QGridLayout()
@@ -144,9 +144,12 @@ class CoordTransformWidget(Widget):
         self.loadLoResButton = guitools.BetterPushButton('Load low-res calibration image')
         self.loadHiResButton = guitools.BetterPushButton('Load high-res calibration image')
         self.saveCalibButton = guitools.BetterPushButton('Save calibration')
+        self.resetCoordsButton = guitools.BetterPushButton('Reset coordinates')
 
-        self.loResVb = self.addViewBox(row=1, col=1)
-        self.hiResVb = self.addViewBox(row=1, col=1)
+        self.loResVbWidget = pg.GraphicsLayoutWidget()
+        self.hiResVbWidget = pg.GraphicsLayoutWidget()
+        self.loResVb = self.loResVbWidget.addViewBox(row=1, col=1)
+        self.hiResVb = self.hiResVbWidget.addViewBox(row=1, col=1)
 
         self.loResImg = guitools.OptimizedImageItem(axisOrder = 'row-major')
         self.hiResImg = guitools.OptimizedImageItem(axisOrder = 'row-major')
@@ -154,9 +157,20 @@ class CoordTransformWidget(Widget):
         self.hiResImg.translate(-0.5, -0.5)
 
         self.loResVb.addItem(self.loResImg)
-        self.hiResVb.additem(self.hiResImg)
+        self.hiResVb.addItem(self.hiResImg)
         self.loResVb.setAspectLocked(True)
         self.hiResVb.setAspectLocked(True)
+        self.loResVb.invertY()
+
+        self.loResScatterPlot = pg.ScatterPlotItem()
+        self.hiResScatterPlot = pg.ScatterPlotItem()
+        self.transformScatterPlot = pg.ScatterPlotItem()
+        self.loResScatterPlot.setData
+        self.hiResScatterPlot.setData
+        self.transformScatterPlot.setData
+        self.loResVb.addItem(self.loResScatterPlot)
+        self.hiResVb.addItem(self.hiResScatterPlot)
+        self.hiResVb.addItem(self.transformScatterPlot)
 
         self.grid = QtGui.QGridLayout()
         self.setLayout(self.grid)
@@ -165,9 +179,12 @@ class CoordTransformWidget(Widget):
         currentRow = 0
         self.grid.addWidget(self.loadLoResButton, currentRow, 0)
         self.grid.addWidget(self.loadHiResButton, currentRow, 1)
-        self.grid.addWidget(self.saveCalibButton, currentRow, 1)
         
         currentRow += 1
-        self.grid.addWidget(self.loResVb, currentRow, 0)
-        self.grid.addWidget(self.hiResVb, currentRow, 1)
+        self.grid.addWidget(self.loResVbWidget, currentRow, 0)
+        self.grid.addWidget(self.hiResVbWidget, currentRow, 1)
+
+        currentRow += 1
+        self.grid.addWidget(self.saveCalibButton, currentRow, 0)
+        self.grid.addWidget(self.resetCoordsButton, currentRow, 1)
 

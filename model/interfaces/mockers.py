@@ -481,11 +481,11 @@ class MockCameraTIS:
             'image_width': 2448,
             'subarray_vpos': 0,
             'subarray_hpos': 0,
-            'exposure_time': 0.1,
-            'subarray_vsize': 1024,
-            'subarray_hsize': 1280
+            'exposure_time': 1,
+            'subarray_vsize': 2048,
+            'subarray_hsize': 2448
         }
-        self.exposure = 100
+        self.exposure = 1
         self.gain = 1
         self.brightness = 1
         self.model = 'mock'

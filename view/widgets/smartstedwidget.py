@@ -160,7 +160,7 @@ class CoordTransformWidget(Widget):
         self.hiResVb.addItem(self.hiResImg)
         self.loResVb.setAspectLocked(True)
         self.hiResVb.setAspectLocked(True)
-        self.loResVb.invertY()
+        #self.loResVb.invertY()
 
         self.loResScatterPlot = pg.ScatterPlotItem()
         self.hiResScatterPlot = pg.ScatterPlotItem()

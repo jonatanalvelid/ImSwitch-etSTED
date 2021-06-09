@@ -134,6 +134,7 @@ class SmartSTEDController(WidgetController):
     def saveScan(self):
         self.__timelog["scan_end"] = datetime.now().strftime('%Ss%fus')
         self._commChannel.snapImage.emit()
+        # save log file with temporal info of trigger event
         filename = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
         name = os.path.join(self.__savefolder, filename) + '_log'
         savename = guitools.getUniqueName(name)
@@ -187,6 +188,9 @@ class SmartSTEDController(WidgetController):
 
     def calibrationFinish(self):
         self.coordinateTransformCalibrate()
+        name = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
+        filename = os.path.join(self.__savefolder, name) + '_transformCoeffs.txt'
+        np.savetxt(fname=filename, X=self.__transformCoeffs)
         print(self.__transformCoeffs)
 
         # plot the resulting transformed low-res coordinates on the hi-res image
@@ -326,6 +330,8 @@ class SmartSTEDController(WidgetController):
                     size = float(self._widget.im_size_edit.text())
                     stepSize = float(self._widget.px_size_edit.text())
                     center = position[index]
+                    if index==0:
+                        center = self.addFastAxisShift(center)
                     start = 0.0
                     analogParameterDict['axis_length'].append(size)
                     analogParameterDict['axis_step_size'].append(stepSize)
@@ -357,6 +363,17 @@ class SmartSTEDController(WidgetController):
         analogParameterDict['sequence_time'] = float(self._widget.dw_time_edit.text()) / 1000
 
         return analogParameterDict, digitalParameterDict
+
+    def addFastAxisShift(self, center):
+        dwell_time = float(self._widget.dw_time_edit.text()) / 1000
+        px_size = float(self._widget.px_size_edit.text())
+        C = np.array([-3.31703795,  3.57475083,  0.68279051])
+        params = [px_size, dwell_time, 1]
+        shift_compensation = np.sum(params*C)
+        print(center)
+        center -= shift_compensation
+        print(center)
+        return center
 
     def coordinateTransformCalibrate(self):
         """ Third-order polynomial fitting with least-squares Levenberg-Marquart algorithm.

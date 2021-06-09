@@ -36,9 +36,7 @@ class TISManager(DetectorManager):
         parameters = {
             'exposure': DetectorNumberParameter(group='Misc', value=100, valueUnits='ms', editable=True),
             'gain': DetectorNumberParameter(group='Misc', value=1, valueUnits='arb.u.', editable=True),
-            'brightness': DetectorNumberParameter(group='Misc', value=1, valueUnits='arb.u.', editable=True),
-            #'image_width': DetectorNumberParameter(group='Misc', value=0, valueUnits='arb.u.', editable=False),
-            #'image_height': DetectorNumberParameter(group='Misc', value=0, valueUnits='arb.u.', editable=False)
+            'brightness': DetectorNumberParameter(group='Misc', value=1, valueUnits='arb.u.', editable=True)
         }
 
         super().__init__(name, fullShape, [1], model, parameters)
@@ -53,7 +51,10 @@ class TISManager(DetectorManager):
             frame = self._camera.grabFrame()
             #dt = datetime.now()
             #time_curr_mid = round(dt.microsecond/1000)
-            frame = np.fliplr(frame)
+            if self._camera.flipimage[0]:
+                frame = np.fliplr(frame)
+            if self._camera.flipimage[1]:
+                frame = np.flipud(frame)
             self.__image = frame
             #dt = datetime.now()
             #time_curr_aft = round(dt.microsecond/1000)

@@ -23,6 +23,7 @@ class CameraTIS:
         self.cam.open()
 
         self.shape = (0,0)
+        self.flipimage = (False, False)
         self.cam.colorenable = 0
         #self.cam.gain.auto = False
         #self.cam.exposure.auto = False
@@ -99,6 +100,10 @@ class CameraTIS:
             self.shape = (self.shape[0], property_value)
         elif property_name == 'image_width':
             self.shape = (property_value, self.shape[1])
+        elif property_name == "fliplr":
+            self.flipimage = (property_value, self.flipimage[1])
+        elif property_name == "flipud":
+            self.flipimage = (self.flipimage[0], property_value)
         else:
             print('Property', property_name, 'does not exist')
             return False
@@ -116,6 +121,10 @@ class CameraTIS:
             property_value = self.shape[0]
         elif property_name == "image_height":
             property_value = self.shape[1]
+        elif property_name == "fliplr":
+            property_value = self.flipimage[0]
+        elif property_name == "flipud":
+            property_value = self.flipimage[1]
         else:
             print('Property', property_name, 'does not exist')
             return False

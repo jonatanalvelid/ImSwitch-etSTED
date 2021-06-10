@@ -42,7 +42,7 @@ class CommunicationChannel(SignalInterface):
 
     endScan = Signal()
 
-    snapImage = Signal()
+    snapImage = Signal(str)  # (detector)
 
     moveZstage = Signal(float)  # (step)
 

@@ -656,9 +656,12 @@ class RecorderController(WidgetController):
             self._widget.filenameEdit.setEnabled(False)
             self._widget.filenameEdit.setText('Current time')
 
-    def snap(self):
+    def snap(self, *args):
         """ Take a snap and save it to a .hdf5 file. """
-        detectorNames = self.getDetectorsToCapture()
+        if args:
+            detectorNames = (args)
+        else:
+            detectorNames = self.getDetectorsToCapture()
         folder = self._widget.folderEdit.text()
         if not os.path.exists(folder):
             os.mkdir(folder)

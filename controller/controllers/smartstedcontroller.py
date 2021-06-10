@@ -13,6 +13,7 @@ from datetime import datetime
 from inspect import signature
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from scipy.optimize import least_squares
 
 import pyqtgraph as pg
 import numpy as np
@@ -29,28 +30,18 @@ class SmartSTEDController(WidgetController):
 
         self.analysisDir = os.path.join(constants.rootFolderPath, 'analysispipelines')
 
-        self.__savefolder = "C:\\DataImswitch\\logs"
+        self.__saveFolder = "C:\\DataImswitch\\logs"
 
-        # Initiate coordinate transform parameters
+        # create a helper controller for the coordinate transform pop-out widget
+        self.__coordTransformHelper = SmartSTEDCoordTransformHelper(self, self._widget.coordTransformWidget, self.__saveFolder)
+
+        ## Initiate coordinate transform coeffs
         self.__transformCoeffs = np.ones(20)
-        self.__loResCoords = list()
-        self.__hiResCoords = list()
-        self.__loResCoordsPx = list()
-        self.__hiResCoordsPx = list()
-        self.__hiResPxSize = 1
-        self.__loResPxSize = 1
-        self.__hiResSize = 1
 
         # Connect SmartSTEDWidget and communication channel signals
         self._widget.initiateButton.clicked.connect(self.initiate)
         self._widget.loadPipelineButton.clicked.connect(self.loadPipeline)
-        self._widget.coordTransfCalibButton.clicked.connect(self.calibrationLaunch)
-        self._widget.coordTransformWidget.saveCalibButton.clicked.connect(self.calibrationFinish)
-        self._widget.coordTransformWidget.resetCoordsButton.clicked.connect(self.resetCalibrationCoords)
-        self._widget.coordTransformWidget.loadLoResButton.clicked.connect(lambda: self.loadCalibImage('lo'))
-        self._widget.coordTransformWidget.loadHiResButton.clicked.connect(lambda: self.loadCalibImage('hi'))
-        self._widget.coordTransformWidget.loResVb.scene().sigMouseClicked.connect(self.mouseClickedCoordTransformLo)
-        self._widget.coordTransformWidget.hiResVb.scene().sigMouseClicked.connect(self.mouseClickedCoordTransformHi)
+        self._widget.coordTransfCalibButton.clicked.connect(self.__coordTransformHelper.calibrationLaunch)
 
         # Create scatter plot item for sending to the viewbox while analysis is running
         self.__scatterPlot = pg.ScatterPlotItem()
@@ -68,43 +59,13 @@ class SmartSTEDController(WidgetController):
         self.__busy = False
         self.time_curr_bef = 0
 
-    def mouseClickedCoordTransformLo(self, event):
-        #print(event.pos())
-        clickPos = self._widget.coordTransformWidget.loResVb.mapSceneToView(event.pos())
-        pos_px = (np.around(clickPos.x()), np.around(clickPos.y()))
-        pos = (np.around(pos_px[0]*self.__loResPxSize, 3), np.around(pos_px[1]*self.__loResPxSize, 3))
-        self.__loResCoordsPx.append(pos_px)
-        self.__loResCoords.append(pos)
-        #print(f'X,Y: {pos}')
-        #print(self.__loResCoords)
-        self._widget.coordTransformWidget.loResScatterPlot.setData(x=np.array(self.__loResCoordsPx)[:,0], y=np.array(self.__loResCoordsPx)[:,1], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
-
-    def mouseClickedCoordTransformHi(self, event):
-        #print(event.pos())
-        clickPos = self._widget.coordTransformWidget.hiResVb.mapSceneToView(event.pos())
-        pos_px = (np.around(clickPos.x()), np.around(clickPos.y()))
-        pos = (np.around(pos_px[0]*self.__hiResPxSize - self.__hiResSize/2, 3), -1 * np.around(pos_px[1]*self.__hiResPxSize - self.__hiResSize/2, 3))
-        self.__hiResCoordsPx.append(pos_px)
-        self.__hiResCoords.append(pos)
-        #print(f'X,Y: {pos}')
-        #print(self.__hiResCoords)
-        self._widget.coordTransformWidget.hiResScatterPlot.setData(x=np.array(self.__hiResCoordsPx)[:,0], y=np.array(self.__hiResCoordsPx)[:,1], pen=pg.mkPen(None), brush='r', symbol='x', size=25)
-
-    def resetCalibrationCoords(self):
-        self.__hiResCoords = list()
-        self.__loResCoords = list()
-        self.__hiResCoordsPx = list()
-        self.__loResCoordsPx = list()
-        self._widget.coordTransformWidget.loResScatterPlot.clear()
-        self._widget.coordTransformWidget.hiResScatterPlot.clear()
-        self._widget.coordTransformWidget.transformScatterPlot.clear()
-
     def initiate(self):
         if not self.__running:
             self.__param_vals = self.readParams()
 
             # Load coordinate transform pipeline of choice
             self.loadTransform()
+            self.__transformCoeffs = self.__coordTransformHelper.getTransformCoeffs()
 
             # Connect communication channel signals
             #self._commChannel.toggleLiveview.emit(True)
@@ -136,7 +97,7 @@ class SmartSTEDController(WidgetController):
         self._commChannel.snapImage.emit()
         # save log file with temporal info of trigger event
         filename = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
-        name = os.path.join(self.__savefolder, filename) + '_log'
+        name = os.path.join(self.__saveFolder, filename) + '_log'
         savename = guitools.getUniqueName(name)
         timelog = [f'{key}: {self.__timelog[key]}' for key in self.__timelog]
         with open(f'{savename}.txt', 'w') as f:
@@ -182,74 +143,6 @@ class SmartSTEDController(WidgetController):
         transformidx = self._widget.transformPipelinePar.currentIndex()
         transformname = self._widget.transformPipelines[transformidx]
         self.transform = getattr(importlib.import_module(f'smartsted.transform_pipelines.{transformname}'), f'{transformname}')
-
-    def calibrationLaunch(self):
-        self._widget.launchCoordTransform()
-
-    def calibrationFinish(self):
-        self.coordinateTransformCalibrate()
-        name = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
-        filename = os.path.join(self.__savefolder, name) + '_transformCoeffs.txt'
-        np.savetxt(fname=filename, X=self.__transformCoeffs)
-        print(self.__transformCoeffs)
-
-        # plot the resulting transformed low-res coordinates on the hi-res image
-        coords_transf = []
-        loResData = np.array([*self.__loResCoords]).astype(np.float32)
-        for i in range(0,len(loResData)):
-            pos = self.poly_thirdorder_transform(self.__transformCoeffs, loResData[i])
-            pos_px = (np.around((pos[0] + self.__hiResSize/2)/self.__hiResPxSize, 0), np.around((-1 * pos[1] + self.__hiResSize/2)/self.__hiResPxSize, 0))
-            coords_transf.append(pos_px)
-        coords_transf = np.array(coords_transf)
-        self._widget.coordTransformWidget.transformScatterPlot.setData(x=coords_transf[:,0], y=coords_transf[:,1], pen=pg.mkPen(None), brush='b', symbol='x', size=20)
-
-    def openFolder(self):
-        """ Opens current folder in File Explorer. """
-        Tk().withdraw()
-        filename = askopenfilename()
-        return filename
-
-    def loadCalibImage(self, modality):
-        # open gui to choose file
-        img_filename = self.openFolder()
-        # load img data from file
-        with h5py.File(img_filename, "r") as f:
-            img_key = list(f.keys())[0]
-            pixelsize = f.attrs['element_size_um'][1]
-            img_data = np.array(f[img_key])
-            imgsize = pixelsize*np.size(img_data,0)
-        # view data in corresponding viewbox
-        self.updateCalibImage(img_data, modality)
-        if modality == 'hi':
-            self.__hiResCoords = list()
-            self.__hiResPxSize = pixelsize
-            self.__hiResSize = imgsize
-        elif modality == 'lo':
-            self.__loResCoords = list()
-            self.__loResPxSize = pixelsize
-
-    def updateCalibImage(self, img_data, modality):
-        """ Update new image in the viewbox. """
-        if modality == 'hi':
-            img_box = self._widget.coordTransformWidget.hiResImg
-        elif modality == 'lo':
-            img_box = self._widget.coordTransformWidget.loResImg
-
-        img_box.setOnlyRenderVisible(True, render=False)
-        img_box.setImage(img_data, autoLevels=True, autoDownsample=False)
-        img_shape = np.shape(img_data)
-        self.adjustFrame(img_shape[1], img_shape[0], modality)
-
-    def adjustFrame(self, width, height, modality):
-        """ Adjusts the viewbox to a new width and height. """
-        if modality == 'hi':
-            img_vb = self._widget.coordTransformWidget.hiResVb
-            img_box = self._widget.coordTransformWidget.hiResImg
-        elif modality == 'lo':
-            img_vb = self._widget.coordTransformWidget.loResVb
-            img_box = self._widget.coordTransformWidget.loResImg
-        guitools.setBestImageLimits(img_vb, width, height)
-        img_box.render()
         
     def runPipeline(self, im, init):
         if not self.__busy:
@@ -269,6 +162,9 @@ class SmartSTEDController(WidgetController):
 
             self.__busy = False
             if coords_detected.size != 0:
+                #print(self.fastDetector)
+                #self.triggeredImage = im
+                self._commChannel.snapImage.emit(self.fastDetector)  # consider putting this after the scan if it slows down the time until the scan, just make sure I get the correct frame (which I have here in im)
                 self.pauseFastModality()
                 self.__timelog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
                 coords_center_scan = self.transform(coords_detected, self.__transformCoeffs)
@@ -365,21 +261,150 @@ class SmartSTEDController(WidgetController):
         return analogParameterDict, digitalParameterDict
 
     def addFastAxisShift(self, center):
+        """ Based on second-degree curved surface fit to 2D-sampling of dwell time and pixel size induced shifts. """
         dwell_time = float(self._widget.dw_time_edit.text()) / 1000
         px_size = float(self._widget.px_size_edit.text())
-        C = np.array([-3.31703795,  3.57475083,  0.68279051])
-        params = [px_size, dwell_time, 1]
+        #C = np.array([-3.31703795,  3.57475083,  0.68279051])  # first order plane fit
+        #params = np.array([px_size, dwell_time, 1])  # for use with first order plane fit
+        C = np.array([-5.06873628, -80.6978355, 104.06976744, -7.12113356, 8.0065076, 0.68227188])  # second order plane fit
+        params = np.array([px_size**2, dwell_time**2, px_size*dwell_time, px_size, dwell_time, 1])  # for use with second order plane fit
         shift_compensation = np.sum(params*C)
         print(center)
         center -= shift_compensation
         print(center)
         return center
 
+
+class SmartSTEDCoordTransformHelper():
+    def __init__(self, smartSTEDController, coordTransformWidget, saveFolder, *args, **kwargs):
+
+        self.smartSTEDController = smartSTEDController
+        self._widget = coordTransformWidget
+        self.__saveFolder = saveFolder
+        
+        # Initiate coordinate transform parameters
+        self.__transformCoeffs = np.ones(20)
+        self.__loResCoords = list()
+        self.__hiResCoords = list()
+        self.__loResCoordsPx = list()
+        self.__hiResCoordsPx = list()
+        self.__hiResPxSize = 1
+        self.__loResPxSize = 1
+        self.__hiResSize = 1
+
+        # connect signals from main widget
+        self._widget.saveCalibButton.clicked.connect(self.calibrationFinish)
+        self._widget.resetCoordsButton.clicked.connect(self.resetCalibrationCoords)
+        self._widget.loadLoResButton.clicked.connect(lambda: self.loadCalibImage('lo'))
+        self._widget.loadHiResButton.clicked.connect(lambda: self.loadCalibImage('hi'))
+        self._widget.loResVb.scene().sigMouseClicked.connect(self.mouseClickedCoordTransformLo)
+        self._widget.hiResVb.scene().sigMouseClicked.connect(self.mouseClickedCoordTransformHi)
+        
+    def getTransformCoeffs(self):
+        return self.__transformCoeffs
+
+    def calibrationLaunch(self):
+        self.smartSTEDController._widget.launchCoordTransform()
+
+    def calibrationFinish(self):
+        self.coordinateTransformCalibrate()
+        name = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
+        filename = os.path.join(self.__saveFolder, name) + '_transformCoeffs.txt'
+        np.savetxt(fname=filename, X=self.__transformCoeffs)
+        print(self.__transformCoeffs)
+
+        # plot the resulting transformed low-res coordinates on the hi-res image
+        coords_transf = []
+        loResData = np.array([*self.__loResCoords]).astype(np.float32)
+        for i in range(0,len(loResData)):
+            pos = self.poly_thirdorder_transform(self.__transformCoeffs, loResData[i])
+            pos_px = (np.around((pos[0] + self.__hiResSize/2)/self.__hiResPxSize, 0), np.around((-1 * pos[1] + self.__hiResSize/2)/self.__hiResPxSize, 0))
+            coords_transf.append(pos_px)
+        coords_transf = np.array(coords_transf)
+        self._widget.transformScatterPlot.setData(x=coords_transf[:,0], y=coords_transf[:,1], pen=pg.mkPen(None), brush='b', symbol='x', size=20)
+
+    def mouseClickedCoordTransformLo(self, event):
+        #print(event.pos())
+        clickPos = self._widget.loResVb.mapSceneToView(event.pos())
+        pos_px = (np.around(clickPos.x()), np.around(clickPos.y()))
+        pos = (np.around(pos_px[0]*self.__loResPxSize, 3), np.around(pos_px[1]*self.__loResPxSize, 3))
+        self.__loResCoordsPx.append(pos_px)
+        self.__loResCoords.append(pos)
+        #print(f'X,Y: {pos}')
+        #print(self.__loResCoords)
+        self._widget.loResScatterPlot.setData(x=np.array(self.__loResCoordsPx)[:,0], y=np.array(self.__loResCoordsPx)[:,1], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
+
+    def mouseClickedCoordTransformHi(self, event):
+        #print(event.pos())
+        clickPos = self._widget.hiResVb.mapSceneToView(event.pos())
+        pos_px = (np.around(clickPos.x()), np.around(clickPos.y()))
+        pos = (np.around(pos_px[0]*self.__hiResPxSize - self.__hiResSize/2, 3), -1 * np.around(pos_px[1]*self.__hiResPxSize - self.__hiResSize/2, 3))
+        self.__hiResCoordsPx.append(pos_px)
+        self.__hiResCoords.append(pos)
+        #print(f'X,Y: {pos}')
+        #print(self.__hiResCoords)
+        self._widget.hiResScatterPlot.setData(x=np.array(self.__hiResCoordsPx)[:,0], y=np.array(self.__hiResCoordsPx)[:,1], pen=pg.mkPen(None), brush='r', symbol='x', size=25)
+
+    def resetCalibrationCoords(self):
+        self.__hiResCoords = list()
+        self.__loResCoords = list()
+        self.__hiResCoordsPx = list()
+        self.__loResCoordsPx = list()
+        self._widget.loResScatterPlot.clear()
+        self._widget.hiResScatterPlot.clear()
+        self._widget.transformScatterPlot.clear()
+
+    def loadCalibImage(self, modality):
+        # open gui to choose file
+        img_filename = self.openFolder()
+        # load img data from file
+        with h5py.File(img_filename, "r") as f:
+            img_key = list(f.keys())[0]
+            pixelsize = f.attrs['element_size_um'][1]
+            img_data = np.array(f[img_key])
+            imgsize = pixelsize*np.size(img_data,0)
+        # view data in corresponding viewbox
+        self.updateCalibImage(img_data, modality)
+        if modality == 'hi':
+            self.__hiResCoords = list()
+            self.__hiResPxSize = pixelsize
+            self.__hiResSize = imgsize
+        elif modality == 'lo':
+            self.__loResCoords = list()
+            self.__loResPxSize = pixelsize
+
+    def updateCalibImage(self, img_data, modality):
+        """ Update new image in the viewbox. """
+        if modality == 'hi':
+            img_box = self._widget.hiResImg
+        elif modality == 'lo':
+            img_box = self._widget.loResImg
+
+        img_box.setOnlyRenderVisible(True, render=False)
+        img_box.setImage(img_data, autoLevels=True, autoDownsample=False)
+        img_shape = np.shape(img_data)
+        self.adjustFrame(img_shape[1], img_shape[0], modality)
+
+    def openFolder(self):
+        """ Opens current folder in File Explorer. """
+        Tk().withdraw()
+        filename = askopenfilename()
+        return filename
+
+    def adjustFrame(self, width, height, modality):
+        """ Adjusts the viewbox to a new width and height. """
+        if modality == 'hi':
+            img_vb = self._widget.hiResVb
+            img_box = self._widget.hiResImg
+        elif modality == 'lo':
+            img_vb = self._widget.loResVb
+            img_box = self._widget.loResImg
+        guitools.setBestImageLimits(img_vb, width, height)
+        img_box.render()
+
     def coordinateTransformCalibrate(self):
         """ Third-order polynomial fitting with least-squares Levenberg-Marquart algorithm.
         """
-        from scipy.optimize import least_squares
-        
         # prepare data and init guess
         c_init = np.hstack([np.zeros(10), np.zeros(10)])
         xdata = np.array([*self.__loResCoords]).astype(np.float32)
@@ -412,4 +437,3 @@ class SmartSTEDController(WidgetController):
         x_i1 = a[0]*c1**3 + a[1]*c2**3 + a[2]*c2*c1**2 + a[3]*c1*c2**2 + a[4]*c1**2 + a[5]*c2**2 + a[6]*c1*c2 + a[7]*c1 + a[8]*c2 + a[9]
         x_i2 = a[10]*c1**3 + a[11]*c2**3 + a[12]*c2*c1**2 + a[13]*c1*c2**2 + a[14]*c1**2 + a[15]*c2**2 + a[16]*c1*c2 + a[17]*c1 + a[18]*c2 + a[19]
         return (x_i1, x_i2)
-         

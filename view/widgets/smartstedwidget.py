@@ -114,7 +114,8 @@ class SmartSTEDWidget(Widget):
         self.param_names = list()
         self.param_edits = list()
         for pipeline_param_name, pipeline_param_val in parameters.items():
-            if pipeline_param_name != 'img':
+            # TODO: fix img_prev better. Maybe img can be a stack of the last few frames for example?
+            if pipeline_param_name != 'img' and pipeline_param_name != 'img_prev':
                 # create param for input
                 param_name = QtGui.QLabel('{}'.format(pipeline_param_name))
                 param_value = pipeline_param_val.default if pipeline_param_val.default is not pipeline_param_val.empty else 0

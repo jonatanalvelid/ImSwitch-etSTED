@@ -91,6 +91,29 @@
             "valueRangeMin": 0,
             "valueRangeMax": 1023,
             "valueRangeStep": 1
+        },
+        "775AOM": {
+          "analogChannel": 3,
+          "digitalLine": 4,
+          "managerName": "NidaqLaserManager",
+          "managerProperties": {
+          },
+          "wavelength": 775,
+          "valueRangeMin": 0,
+          "valueRangeMax": 10,
+          "valueRangeStep": 0.1
+        },
+        "775Katana": {
+          "analogChannel": null,
+          "digitalLine": null,
+          "managerName": "KatanaLaserManager",
+          "managerProperties": {
+            "rs232device": "katana"
+          },
+          "wavelength": 775,
+          "valueRangeMin": 0,
+          "valueRangeMax": 3100,
+          "valueRangeStep": 1
         }
     },
     "positioners": {
@@ -187,6 +210,22 @@
                 "dsrdtr": "false",
                 "xonxoff": "false"
             }
+        },
+        "katana": {
+          "managerName": "RS232Manager",
+          "managerProperties": {
+            "port": "ASRL8::INSTR",
+            "encoding": "ascii",
+            "recv_termination": "\n",
+            "send_termination": "\n",
+            "baudrate": 38400,
+            "bytesize": 8,
+            "parity": "none",
+            "stopbits": 1,
+            "rtscts": "false",
+            "dsrdtr": "false",
+            "xonxoff": "false"
+          }
         }
     },
     "scan": {
@@ -198,7 +237,15 @@
             "sampleRate": 100000.0
         }
     },
-    "slm": null,
+    "slm": {
+      "monitorIdx": 2,
+      "width": 792,
+      "height": 600,
+      "wavelength": 775,
+      "pixelsize": 0.02,
+      "angle_mount": 0.15,
+      "correctionPatternsDir": "C:\\Users\\STEDRed\\Documents\\HamamatsuSLM\\deform_corr_patterns\\"
+    },
     "focusLock": null,
     "smartSTED": {
         "fastDetector": "smartSTEDCamera",
@@ -247,7 +294,7 @@
         "BeadRecWidget": false,
         "FFTWidget": false,
         "ULensesWidget": false,
-        "SLMWidget": false,
+        "SLMWidget": true,
         "FocusLockWidget": false,
         "MotCorrWidget": false,
         "SmartSTEDWidget": true,

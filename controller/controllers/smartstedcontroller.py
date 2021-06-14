@@ -25,18 +25,22 @@ class SmartSTEDController(WidgetController):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fastDetector = self._setupInfo.smartSTED.fastDetector
+        self.slowDetector = self._setupInfo.smartSTED.slowDetector
 
         self._widget.initControls(self._setupInfo.positioners, self._setupInfo.getTTLDevices())
 
         self.analysisDir = os.path.join(constants.rootFolderPath, 'analysispipelines')
 
-        self.__saveFolder = "C:\\DataImswitch\\logs"
+        self.__saveFolder = "C:\\DataImswitch\\logs_smartsted"
 
         # create a helper controller for the coordinate transform pop-out widget
         self.__coordTransformHelper = SmartSTEDCoordTransformHelper(self, self._widget.coordTransformWidget, self.__saveFolder)
 
-        ## Initiate coordinate transform coeffs
+        # Initiate coordinate transform coeffs
         self.__transformCoeffs = np.ones(20)
+
+        # Initiate last frame image, to be used with some peak detection pipelines
+        self.__previousImg = None
 
         # Connect SmartSTEDWidget and communication channel signals
         self._widget.initiateButton.clicked.connect(self.initiate)
@@ -47,13 +51,17 @@ class SmartSTEDController(WidgetController):
         self.__scatterPlot = pg.ScatterPlotItem()
         self.addScatter()
         
-        self.__timelog = {
+        self.__detLog = {
             "pipeline_start": "",
             "pipeline_end": "",
             "coord_transf_start": "",
             "coord_transf_end": "",
             "scan_start": "",
-            "scan_end": ""
+            "scan_end": "",
+            "fastscan_x_center": 0,
+            "fastscan_y_center": 0,
+            "slowscan_x_center": 0,
+            "slowscan_y_center": 0
         }
         self.__running = False
         self.__busy = False
@@ -93,13 +101,13 @@ class SmartSTEDController(WidgetController):
             self.__running = False
         
     def saveScan(self):
-        self.__timelog["scan_end"] = datetime.now().strftime('%Ss%fus')
-        self._commChannel.snapImage.emit()
+        self.__detLog["scan_end"] = datetime.now().strftime('%Ss%fus')
+        self._commChannel.snapImage.emit(self.slowDetector)
         # save log file with temporal info of trigger event
         filename = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
         name = os.path.join(self.__saveFolder, filename) + '_log'
         savename = guitools.getUniqueName(name)
-        timelog = [f'{key}: {self.__timelog[key]}' for key in self.__timelog]
+        timelog = [f'{key}: {self.__detLog[key]}' for key in self.__detLog]
         with open(f'{savename}.txt', 'w') as f:
             [f.write(f'{st}\n') for st in timelog]
 
@@ -146,16 +154,17 @@ class SmartSTEDController(WidgetController):
         
     def runPipeline(self, im, init):
         if not self.__busy:
-            self.__timelog["pipeline_start"] = datetime.now().strftime('%Ss%fus')
+            self.__detLog["pipeline_start"] = datetime.now().strftime('%Ss%fus')
 
             self.__busy = True
             
             dt = datetime.now()
             self.time_curr_bef = round(dt.microsecond/1000)
 
-            coords_detected = self.pipeline(im, *self.__param_vals)
+            coords_detected = self.pipeline(im, self.__previousImg, *self.__param_vals)
+            self.__previousImg = im
 
-            self.__timelog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
+            self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             dt = datetime.now()
             self.time_curr_aft = round(dt.microsecond/1000)
             print(f'Time for pipeline: {self.time_curr_aft-self.time_curr_bef} ms')
@@ -164,12 +173,17 @@ class SmartSTEDController(WidgetController):
             if coords_detected.size != 0:
                 #print(self.fastDetector)
                 #self.triggeredImage = im
-                self._commChannel.snapImage.emit(self.fastDetector)  # consider putting this after the scan if it slows down the time until the scan, just make sure I get the correct frame (which I have here in im)
+                # TODO: consider putting this after the scan if it slows down the time until the scan, just make sure I get the correct frame (which I have here in im)
+                self._commChannel.snapImage.emit(self.fastDetector)
                 self.pauseFastModality()
-                self.__timelog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
+                self.__detLog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
                 coords_center_scan = self.transform(coords_detected, self.__transformCoeffs)
-                self.__timelog["coord_transf_end"] = datetime.now().strftime('%Ss%fus')
-                self.__timelog["scan_start"] = datetime.now().strftime('%Ss%fus')
+                self.__detLog["coord_transf_end"] = datetime.now().strftime('%Ss%fus')
+                self.__detLog["scan_start"] = datetime.now().strftime('%Ss%fus')
+                self.__detLog["fastscan_x_center"] = coords_detected[0][0]
+                self.__detLog["fastscan_y_center"] = coords_detected[1][0]
+                self.__detLog["slowscan_x_center"] = coords_center_scan[0]
+                self.__detLog["slowscan_y_center"] = coords_center_scan[1]
                 self.runSlowScan(position=coords_center_scan)
             self.updateScatter(coords_detected)
 
@@ -244,7 +258,8 @@ class SmartSTEDController(WidgetController):
         digitalParameterDict['TTL_end'] = []
         for deviceName, deviceInfo in self._setupInfo.getTTLDevices().items():
             digitalParameterDict['target_device'].append(deviceName)
-
+            #TODO: NEED TO READ THESE PARAMETERS FROM THE SCAN WIDGET SOMEHOW? OR HAVE SOME FIELDS FOR IT IN THE SMARTSTEDWIDGET ALSO
+            #TODO: right now all device (laser) TTLs are turned on for testing
             deviceStarts = '0'.split(',')
             digitalParameterDict['TTL_start'].append([
                 float(deviceStart) / 1000 for deviceStart in deviceStarts if deviceStart

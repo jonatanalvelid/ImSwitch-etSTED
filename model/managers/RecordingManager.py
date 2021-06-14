@@ -62,8 +62,8 @@ class RecordingManager(SignalInterface):
             dataset = file.create_dataset(f'data:{detectorName}', (shape[0], shape[1]), dtype='i2')
 
             for key, value in attrs[detectorName].items():
-                print(key)
-                print(value)
+                #print(key)
+                #print(value)
                 file.attrs[key] = value
                 dataset.attrs[key] = value
 

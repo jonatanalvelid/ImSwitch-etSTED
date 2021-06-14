@@ -37,6 +37,7 @@ class ScanController(SuperScanController):
         # Connect CommunicationChannel signals
         self._commChannel.prepareScan.connect(lambda: self.setScanButton(True))
         self._commChannel.toggleBlockScanWidget.connect(lambda block: self.toggleBlockWidget(block))
+        #self._commChannel.something.connect(self.getDigitalParameters)  # how do I return something from this signal call back to smartstedcontroller? Is it even possible?
 
         # Connect ScanWidget signals
         self._widget.saveScanBtn.clicked.connect(self.saveScan)
@@ -227,6 +228,25 @@ class ScanController(SuperScanController):
 
         self._digitalParameterDict['sequence_time'] = float(self._widget.seqTimePar.text()) / 1000
         self._analogParameterDict['sequence_time'] = float(self._widget.seqTimePar.text()) / 1000
+
+    def getDigitalParameters(self):
+        self._digitalParameterDict['target_device'] = []
+        self._digitalParameterDict['TTL_start'] = []
+        self._digitalParameterDict['TTL_end'] = []
+        for deviceName, deviceInfo in self._setupInfo.getTTLDevices().items():
+            self._digitalParameterDict['target_device'].append(deviceName)
+
+            deviceStarts = self._widget.pxParameters['sta' + deviceName].text().split(',')
+            self._digitalParameterDict['TTL_start'].append([
+                float(deviceStart) / 1000 for deviceStart in deviceStarts if deviceStart
+            ])
+
+            deviceEnds = self._widget.pxParameters['end' + deviceName].text().split(',')
+            self._digitalParameterDict['TTL_end'].append([
+                float(deviceEnd) / 1000 for deviceEnd in deviceEnds if deviceEnd
+            ])
+        self._digitalParameterDict['sequence_time'] = float(self._widget.seqTimePar.text()) / 1000
+        return self._digitalParameterDict
 
     def setContLaserPulses(self, isContLaserPulses):
         for i in range(len(self._setupInfo.positioners)):

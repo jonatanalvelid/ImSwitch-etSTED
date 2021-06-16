@@ -54,8 +54,17 @@ class SmartSTEDWidget(Widget):
         self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
         
         self.coordTransfCalibButton = guitools.BetterPushButton('Transform calibration')
+        self.recordBinaryMaskButton = guitools.BetterPushButton('Transform calibration')
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
+        self.visualizeOnlyCheck = QtGui.QCheckBox('Visualize only')
+
+        self.bin_thresh_label = QtGui.QLabel('Bin. threshold')
+        self.bin_thresh_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.bin_thresh_edit = QtGui.QLineEdit(str(100))
+        self.bin_smooth_label = QtGui.QLabel('Bin. threshold')
+        self.bin_smooth_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.bin_smooth_edit = QtGui.QLineEdit(str(2))
 
         self.im_param_label = QtGui.QLabel('ROI parameters')
         self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
@@ -81,18 +90,24 @@ class SmartSTEDWidget(Widget):
         # add general buttons to grid
         self.grid.addWidget(self.initiateButton, currentRow, 0)
         self.grid.addWidget(self.endlessScanCheck, currentRow, 1)
+        self.grid.addWidget(self.visualizeOnlyCheck, currentRow, 2)
+        self.grid.addWidget(self.recordBinaryMaskButton, currentRow, 5)
         
-        currentRow += 1
+        currentRow += 2
 
         # add image and pixel size parameters to grid
         # add param name and param to grid
-        self.grid.addWidget(self.im_param_label, currentRow, 1)
-        self.grid.addWidget(self.im_size_label, currentRow-1, 2)
-        self.grid.addWidget(self.px_size_label, currentRow-1, 3)
-        self.grid.addWidget(self.dw_time_label, currentRow-1, 4)
-        self.grid.addWidget(self.im_size_edit, currentRow, 2)
-        self.grid.addWidget(self.px_size_edit, currentRow, 3)
-        self.grid.addWidget(self.dw_time_edit, currentRow, 4)
+        self.grid.addWidget(self.im_param_label, currentRow, 0)
+        self.grid.addWidget(self.im_size_label, currentRow-1, 1)
+        self.grid.addWidget(self.px_size_label, currentRow-1, 2)
+        self.grid.addWidget(self.dw_time_label, currentRow-1, 3)
+        self.grid.addWidget(self.bin_thresh_label, currentRow-1, 4)
+        self.grid.addWidget(self.bin_smooth_label, currentRow-1, 5)
+        self.grid.addWidget(self.im_size_edit, currentRow, 1)
+        self.grid.addWidget(self.px_size_edit, currentRow, 2)
+        self.grid.addWidget(self.dw_time_edit, currentRow, 3)
+        self.grid.addWidget(self.bin_thresh_edit, currentRow, 4)
+        self.grid.addWidget(self.bin_smooth_edit, currentRow, 5)
 
         currentRow += 1
 
@@ -114,8 +129,8 @@ class SmartSTEDWidget(Widget):
         self.param_names = list()
         self.param_edits = list()
         for pipeline_param_name, pipeline_param_val in parameters.items():
-            # TODO: fix img_prev better. Maybe img can be a stack of the last few frames for example?
-            if pipeline_param_name != 'img' and pipeline_param_name != 'img_prev':
+            #TODO: fix bkg better, let img be a stack of previous frames maybe?
+            if pipeline_param_name != 'img' and pipeline_param_name != 'bkg' and pipeline_param_name != 'binary_mask':
                 # create param for input
                 param_name = QtGui.QLabel('{}'.format(pipeline_param_name))
                 param_value = pipeline_param_val.default if pipeline_param_val.default is not pipeline_param_val.empty else 0

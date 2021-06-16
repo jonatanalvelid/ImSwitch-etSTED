@@ -14,6 +14,7 @@ from inspect import signature
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from scipy.optimize import least_squares
+import scipy.ndimage as ndi
 
 import pyqtgraph as pg
 import numpy as np
@@ -39,13 +40,11 @@ class SmartSTEDController(WidgetController):
         # Initiate coordinate transform coeffs
         self.__transformCoeffs = np.ones(20)
 
-        # Initiate last frame image, to be used with some peak detection pipelines
-        self.__previousImg = None
-
         # Connect SmartSTEDWidget and communication channel signals
         self._widget.initiateButton.clicked.connect(self.initiate)
         self._widget.loadPipelineButton.clicked.connect(self.loadPipeline)
         self._widget.coordTransfCalibButton.clicked.connect(self.__coordTransformHelper.calibrationLaunch)
+        self._widget.recordBinaryMaskButton.clicked.connect(self.initiateBinaryMask)
 
         # Create scatter plot item for sending to the viewbox while analysis is running
         self.__scatterPlot = pg.ScatterPlotItem()
@@ -66,6 +65,10 @@ class SmartSTEDController(WidgetController):
         self.__running = False
         self.__busy = False
         self.time_curr_bef = 0
+        self.__bkg = None
+        self.__binary_mask = None
+        self.__binary_stack = np.array([])
+        self.__binary_frames = 10
 
     def initiate(self):
         if not self.__running:
@@ -161,8 +164,7 @@ class SmartSTEDController(WidgetController):
             dt = datetime.now()
             self.time_curr_bef = round(dt.microsecond/1000)
 
-            coords_detected = self.pipeline(im, self.__previousImg, *self.__param_vals)
-            self.__previousImg = im
+            coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, *self.__param_vals)
 
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             dt = datetime.now()
@@ -170,7 +172,7 @@ class SmartSTEDController(WidgetController):
             print(f'Time for pipeline: {self.time_curr_aft-self.time_curr_bef} ms')
 
             self.__busy = False
-            if coords_detected.size != 0:
+            if coords_detected.size != 0 and not self._widget.visualizeOnlyCheck.isChecked():
                 #print(self.fastDetector)
                 #self.triggeredImage = im
                 # TODO: consider putting this after the scan if it slows down the time until the scan, just make sure I get the correct frame (which I have here in im)
@@ -186,6 +188,30 @@ class SmartSTEDController(WidgetController):
                 self.__detLog["slowscan_y_center"] = coords_center_scan[1]
                 self.runSlowScan(position=coords_center_scan)
             self.updateScatter(coords_detected)
+            self.__bkg = im
+
+    def addImgBinStack(self, im):
+        if not self.__binary_stack:
+            self.__binary_stack = im
+        elif len(self.__binary_stack) < self.__binary_frames:
+            if np.ndim(self.__binary_stack) == 2:
+                self.__binary_stack = np.stack((self.__binary_stack, im))
+            else:
+                self.__binary_stack = np.concatenate((self.__binary_stack, [im]), axis=0)
+        else:
+            self._commChannel.updateImage.disconnect(self.addImgBinStack)
+            self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
+            self.calculateBinaryMask()
+
+    def initiateBinaryMask(self):
+        self.__binary_stack = np.array([])
+        self._master.lasersManager.execOn('488', lambda l: l.setEnabled(True))
+        self._commChannel.updateImage.connect(self.addImgBinStack)
+
+    def calculateBinaryMask(self):
+        img_sum = np.sum(self.__binary_stack,0)
+        img_bin = ndi.filters.gaussian_filter(img_sum, np.float(self.widget.bin_smooth_edit.text())) 
+        self.__binary_mask = np.array(img_bin > np.float(self.widget.bin_thresh_edit.text()))
 
     def updateScatter(self, coords):
         self.__scatterPlot.setData(x=coords[0,:], y=coords[1,:], pen=pg.mkPen(None), brush='g', symbol='x', size=25)

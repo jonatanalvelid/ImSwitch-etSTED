@@ -67,7 +67,7 @@ class SmartSTEDController(WidgetController):
         self.time_curr_bef = 0
         self.__bkg = None
         self.__binary_mask = None
-        self.__binary_stack = np.array([])
+        self.__binary_stack = None
         self.__binary_frames = 10
 
     def initiate(self):
@@ -174,16 +174,19 @@ class SmartSTEDController(WidgetController):
             self.__busy = False
             if coords_detected.size != 0 and not self._widget.visualizeOnlyCheck.isChecked():
                 #print(self.fastDetector)
+                # TODO: if detected coordinates are more than one, pick one of them to scan!
+                if len(coords_detected) > 1:
+                    coords_scan = coords_detected[:,0]  # TODO: NEED TO CHECK IF THIS IS CORRECT
                 #self.triggeredImage = im
                 # TODO: consider putting this after the scan if it slows down the time until the scan, just make sure I get the correct frame (which I have here in im)
                 self._commChannel.snapImage.emit(self.fastDetector)
                 self.pauseFastModality()
                 self.__detLog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
-                coords_center_scan = self.transform(coords_detected, self.__transformCoeffs)
+                coords_center_scan = self.transform(coords_scan, self.__transformCoeffs)
                 self.__detLog["coord_transf_end"] = datetime.now().strftime('%Ss%fus')
                 self.__detLog["scan_start"] = datetime.now().strftime('%Ss%fus')
-                self.__detLog["fastscan_x_center"] = coords_detected[0][0]
-                self.__detLog["fastscan_y_center"] = coords_detected[1][0]
+                self.__detLog["fastscan_x_center"] = coords_scan[0]
+                self.__detLog["fastscan_y_center"] = coords_scan[1]
                 self.__detLog["slowscan_x_center"] = coords_center_scan[0]
                 self.__detLog["slowscan_y_center"] = coords_center_scan[1]
                 self.runSlowScan(position=coords_center_scan)
@@ -191,27 +194,30 @@ class SmartSTEDController(WidgetController):
             self.__bkg = im
 
     def addImgBinStack(self, im):
-        if not self.__binary_stack:
+        if self.__binary_stack is None:
             self.__binary_stack = im
-        elif len(self.__binary_stack) < self.__binary_frames:
+        elif len(self.__binary_stack) == self.__binary_frames:
+            print('finished!')
+            self._commChannel.updateImage.disconnect(self.addImgBinStack)
+            self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
+            self.calculateBinaryMask()
+        else:
             if np.ndim(self.__binary_stack) == 2:
                 self.__binary_stack = np.stack((self.__binary_stack, im))
             else:
                 self.__binary_stack = np.concatenate((self.__binary_stack, [im]), axis=0)
-        else:
-            self._commChannel.updateImage.disconnect(self.addImgBinStack)
-            self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
-            self.calculateBinaryMask()
 
     def initiateBinaryMask(self):
-        self.__binary_stack = np.array([])
+        self.__binary_stack = None
         self._master.lasersManager.execOn('488', lambda l: l.setEnabled(True))
         self._commChannel.updateImage.connect(self.addImgBinStack)
 
     def calculateBinaryMask(self):
-        img_sum = np.sum(self.__binary_stack,0)
-        img_bin = ndi.filters.gaussian_filter(img_sum, np.float(self.widget.bin_smooth_edit.text())) 
-        self.__binary_mask = np.array(img_bin > np.float(self.widget.bin_thresh_edit.text()))
+        img_mean = np.mean(self.__binary_stack,0)
+        img_bin = ndi.filters.gaussian_filter(img_mean, np.float(self._widget.bin_smooth_edit.text())) 
+        self.__binary_mask = np.array(img_bin > np.float(self._widget.bin_thresh_edit.text()))
+        print(np.mean(self.__binary_mask))
+        #TODO: add a way to show the binary mask, maybe in a pop-up window when it finishes, so that the user knows if it is good or if it should be recalculated!
 
     def updateScatter(self, coords):
         self.__scatterPlot.setData(x=coords[0,:], y=coords[1,:], pen=pg.mkPen(None), brush='g', symbol='x', size=25)

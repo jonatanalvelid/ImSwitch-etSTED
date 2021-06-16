@@ -4,7 +4,7 @@ from cupyx.scipy import ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def pipeline_maxpeaks_opt(img, bkg, binary_mask, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1):
+def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1):
     f_multiply = 100
     img = cp.array(img)
     bkg = cp.array(bkg)

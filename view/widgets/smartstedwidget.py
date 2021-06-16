@@ -54,7 +54,7 @@ class SmartSTEDWidget(Widget):
         self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
         
         self.coordTransfCalibButton = guitools.BetterPushButton('Transform calibration')
-        self.recordBinaryMaskButton = guitools.BetterPushButton('Transform calibration')
+        self.recordBinaryMaskButton = guitools.BetterPushButton('Record binary mask')
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
         self.visualizeOnlyCheck = QtGui.QCheckBox('Visualize only')
@@ -62,7 +62,7 @@ class SmartSTEDWidget(Widget):
         self.bin_thresh_label = QtGui.QLabel('Bin. threshold')
         self.bin_thresh_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.bin_thresh_edit = QtGui.QLineEdit(str(100))
-        self.bin_smooth_label = QtGui.QLabel('Bin. threshold')
+        self.bin_smooth_label = QtGui.QLabel('Bin. smooth (px)')
         self.bin_smooth_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.bin_smooth_edit = QtGui.QLineEdit(str(2))
 
@@ -124,7 +124,7 @@ class SmartSTEDWidget(Widget):
             self.grid.removeWidget(param)
 
         # initiate parameter fields for all the parameters in the pipeline chosen
-        currentRow = 3
+        currentRow = 4
         
         self.param_names = list()
         self.param_edits = list()

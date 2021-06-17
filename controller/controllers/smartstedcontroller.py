@@ -197,7 +197,6 @@ class SmartSTEDController(WidgetController):
         if self.__binary_stack is None:
             self.__binary_stack = im
         elif len(self.__binary_stack) == self.__binary_frames:
-            print('finished!')
             self._commChannel.updateImage.disconnect(self.addImgBinStack)
             self._master.lasersManager.execOn('488', lambda l: l.setEnabled(False))
             self.calculateBinaryMask()
@@ -216,14 +215,24 @@ class SmartSTEDController(WidgetController):
         img_mean = np.mean(self.__binary_stack,0)
         img_bin = ndi.filters.gaussian_filter(img_mean, np.float(self._widget.bin_smooth_edit.text())) 
         self.__binary_mask = np.array(img_bin > np.float(self._widget.bin_thresh_edit.text()))
-        print(np.mean(self.__binary_mask))
-        #TODO: add a way to show the binary mask, maybe in a pop-up window when it finishes, so that the user knows if it is good or if it should be recalculated!
+        #print(np.mean(self.__binary_mask))
+        self.showBinaryMask()
+
+    def showBinaryMask(self):
+        img_box = self._widget.showBinaryWidget.img
+        img_vb = self._widget.showBinaryWidget.imgVb
+        img_box.setOnlyRenderVisible(True, render=False)
+        img_box.setImage(self.__binary_mask, autoLevels=True, autoDownsample=False)
+        img_shape = np.shape(self.__binary_mask)
+        guitools.setBestImageLimits(img_vb, img_shape[1], img_shape[0])
+        img_box.render()
+        self._widget.launchHelpWidget(self._widget.showBinaryWidget, init=True)
 
     def updateScatter(self, coords):
         self.__scatterPlot.setData(x=coords[0,:], y=coords[1,:], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
 
     def addScatter(self):
-        """ Adds the scattered point from pipeline output to ImageWidget viewbox through the CommunicationChannel. """
+        """ Adds the scatter points from pipeline output to ImageWidget viewbox through the CommunicationChannel. """
         self.__scatterPlot.setData
         self._commChannel.addItemTovb.emit(self.__scatterPlot)
 
@@ -351,7 +360,7 @@ class SmartSTEDCoordTransformHelper():
         return self.__transformCoeffs
 
     def calibrationLaunch(self):
-        self.smartSTEDController._widget.launchCoordTransform()
+        self.smartSTEDController._widget.launchHelpWidget(self.smartSTEDController._widget.coordTransformWidget, init=True)
 
     def calibrationFinish(self):
         self.coordinateTransformCalibrate()

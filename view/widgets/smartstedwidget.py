@@ -78,8 +78,24 @@ class SmartSTEDWidget(Widget):
         self.dw_time_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.dw_time_edit = QtGui.QLineEdit(str(0.01))
 
+        # mini widget for coordinate transform
         self.coordTransformWidget = CoordTransformWidget(*args, **kwargs)
         self.coordTransformWidget.initControls()
+
+        # mini widget for showing the binary object image
+        self.showBinaryWidget = Widget(*args, **kwargs)
+        self.showBinaryWidget.imgVbWidget = pg.GraphicsLayoutWidget()
+        self.showBinaryWidget.imgVb = self.showBinaryWidget.imgVbWidget.addViewBox(row=1, col=1)
+
+        self.showBinaryWidget.img = guitools.OptimizedImageItem(axisOrder = 'row-major')
+        self.showBinaryWidget.img.translate(-0.5, -0.5)
+
+        self.showBinaryWidget.imgVb.addItem(self.showBinaryWidget.img)
+        self.showBinaryWidget.imgVb.setAspectLocked(True)
+        
+        self.showBinaryWidget.grid = QtGui.QGridLayout()
+        self.showBinaryWidget.setLayout(self.showBinaryWidget.grid)
+        self.showBinaryWidget.grid.addWidget(self.showBinaryWidget.imgVbWidget, 0, 0)
 
         self.grid = QtGui.QGridLayout()
         self.setLayout(self.grid)
@@ -144,11 +160,11 @@ class SmartSTEDWidget(Widget):
 
                 currentRow += 1
 
-    def launchCoordTransform(self):
-        self.coordTransformWidget.show()
-
-    def hideCoordTransform(self):
-        self.coordTransformWidget.hide()
+    def launchHelpWidget(self, widget, init=True):
+        if init:
+            widget.show()
+        else:
+            widget.hide()
 
 
 class CoordTransformWidget(Widget):

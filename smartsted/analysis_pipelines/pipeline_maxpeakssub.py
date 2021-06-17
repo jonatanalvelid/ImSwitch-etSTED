@@ -2,7 +2,7 @@ import numpy as np
 import scipy.ndimage as ndi
 from skimage.feature import peak_local_max
 
-def pipeline_maxpeakssub(img, img_prev=None, min_dist=10, thresh_abs=10, num_peaks=100):
+def pipeline_maxpeakssub(img, bkg=None, binary_mask=None, testmode=False, min_dist=10, thresh_abs=10, num_peaks=100):
     if img_prev is None:
         return np.array([])
     img_sub = np.subtract(img, img_prev)

@@ -83,19 +83,19 @@ class SmartSTEDWidget(Widget):
         self.coordTransformWidget.initControls()
 
         # mini widget for showing the binary object image
-        self.showBinaryWidget = Widget(*args, **kwargs)
-        self.showBinaryWidget.imgVbWidget = pg.GraphicsLayoutWidget()
-        self.showBinaryWidget.imgVb = self.showBinaryWidget.imgVbWidget.addViewBox(row=1, col=1)
+        self.analysisHelpWidget = Widget(*args, **kwargs)
+        self.analysisHelpWidget.imgVbWidget = pg.GraphicsLayoutWidget()
+        self.analysisHelpWidget.imgVb = self.analysisHelpWidget.imgVbWidget.addViewBox(row=1, col=1)
 
-        self.showBinaryWidget.img = guitools.OptimizedImageItem(axisOrder = 'row-major')
-        self.showBinaryWidget.img.translate(-0.5, -0.5)
+        self.analysisHelpWidget.img = guitools.OptimizedImageItem(axisOrder = 'row-major')
+        self.analysisHelpWidget.img.translate(-0.5, -0.5)
 
-        self.showBinaryWidget.imgVb.addItem(self.showBinaryWidget.img)
-        self.showBinaryWidget.imgVb.setAspectLocked(True)
+        self.analysisHelpWidget.imgVb.addItem(self.analysisHelpWidget.img)
+        self.analysisHelpWidget.imgVb.setAspectLocked(True)
         
-        self.showBinaryWidget.grid = QtGui.QGridLayout()
-        self.showBinaryWidget.setLayout(self.showBinaryWidget.grid)
-        self.showBinaryWidget.grid.addWidget(self.showBinaryWidget.imgVbWidget, 0, 0)
+        self.analysisHelpWidget.grid = QtGui.QGridLayout()
+        self.analysisHelpWidget.setLayout(self.analysisHelpWidget.grid)
+        self.analysisHelpWidget.grid.addWidget(self.analysisHelpWidget.imgVbWidget, 0, 0)
 
         self.grid = QtGui.QGridLayout()
         self.setLayout(self.grid)
@@ -146,7 +146,7 @@ class SmartSTEDWidget(Widget):
         self.param_edits = list()
         for pipeline_param_name, pipeline_param_val in parameters.items():
             #TODO: fix bkg better, let img be a stack of previous frames maybe?
-            if pipeline_param_name != 'img' and pipeline_param_name != 'bkg' and pipeline_param_name != 'binary_mask':
+            if pipeline_param_name != 'img' and pipeline_param_name != 'bkg' and pipeline_param_name != 'binary_mask' and pipeline_param_name != 'testmode':
                 # create param for input
                 param_name = QtGui.QLabel('{}'.format(pipeline_param_name))
                 param_value = pipeline_param_val.default if pipeline_param_val.default is not pipeline_param_val.empty else 0

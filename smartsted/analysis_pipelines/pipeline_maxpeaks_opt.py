@@ -4,14 +4,14 @@ from cupyx.scipy import ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1):
+def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1):
     f_multiply = 100
-    img = cp.array(img)
-    bkg = cp.array(bkg)
-    if bkg == None or binary_mask == None:
+    if bkg is None or binary_mask is None:
         print('You have to provide a background image and a binary mask for this pipeline!')
-        img_ana = cp.zeros(cp.shape(img))
+        img_ana = cp.zeros(cp.shape(cp.array(img)))
     else:
+        img = cp.array(img)
+        bkg = cp.array(bkg)
         # subtract last img (noisier, but quicker)
         img_ana = cp.subtract(img,bkg)
         
@@ -27,10 +27,10 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, min_dist=30, thresh_a
     "Peak_local_max all-in-one as a combo of opencv and cupy"
     thresh_abs = thresh_abs * f_multiply
     size = 2 * min_dist + 1
+    img_ana = (img_ana * f_multiply).astype('uint16')
     # get filter structuring element
     footprint = cv2.getStructuringElement(cv2.MORPH_RECT, ksize=[size,size])
     # maximum filter (dilation + equal)
-    img_ana = (img_ana * f_multiply).astype('uint16')
     image_max = cv2.dilate(img_ana.get(), kernel=footprint)
     #return image, image_max
     mask = cp.equal(img_ana,cp.array(image_max))
@@ -80,4 +80,7 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, min_dist=30, thresh_a
     if len(coordinates) > num_peaks:
         coordinates = coordinates[:num_peaks]
 
-    return coordinates
+    if testmode:
+        return coordinates, img_ana
+    else:
+        return coordinates

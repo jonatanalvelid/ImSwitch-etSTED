@@ -64,7 +64,8 @@ class SmartSTEDController(WidgetController):
         }
         self.__running = False
         self.__busy = False
-        self.time_curr_bef = 0
+        #self.time_curr_bef = 0
+        self.__testmode = False
         self.__bkg = None
         self.__binary_mask = None
         self.__binary_stack = None
@@ -73,6 +74,11 @@ class SmartSTEDController(WidgetController):
     def initiate(self):
         if not self.__running:
             self.__param_vals = self.readParams()
+
+            # Check if test mode, in case launch help widget
+            self.__testmode = self._widget.visualizeOnlyCheck.isChecked()
+            if self.__testmode:
+                self.launchAnalysisHelpWidget()
 
             # Load coordinate transform pipeline of choice
             self.loadTransform()
@@ -161,22 +167,28 @@ class SmartSTEDController(WidgetController):
 
             self.__busy = True
             
-            dt = datetime.now()
-            self.time_curr_bef = round(dt.microsecond/1000)
-
-            coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, *self.__param_vals)
-
+            t_pre = datetime.now()
+            if self.__testmode:
+                coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, self.__testmode, *self.__param_vals)
+            else:
+                coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__testmode, *self.__param_vals)
+            t_post = datetime.now()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
-            dt = datetime.now()
-            self.time_curr_aft = round(dt.microsecond/1000)
-            print(f'Time for pipeline: {self.time_curr_aft-self.time_curr_bef} ms')
+            #self.time_curr_bef = round(t_pre.microsecond/1000)
+            #self.time_curr_aft = round(t_post.microsecond/1000)
+            print(f'Time for pipeline: {round(t_post.microsecond/1000)-round(t_pre.microsecond/1000)} ms')
 
             self.__busy = False
-            if coords_detected.size != 0 and not self._widget.visualizeOnlyCheck.isChecked():
+            if self.__testmode:
+                self.updateScatter(coords_detected, clear=True)
+                self.setAnalysisHelpImg(img_ana)
+            elif coords_detected.size != 0:
                 #print(self.fastDetector)
-                # TODO: if detected coordinates are more than one, pick one of them to scan!
-                if len(coords_detected) > 1:
-                    coords_scan = coords_detected[:,0]  # TODO: NEED TO CHECK IF THIS IS CORRECT
+                if np.size(coords_detected) > 2:
+                    coords_scan = coords_detected[0,:]
+                else:
+                    coords_scan = coords_detected
+                print(coords_scan)
                 #self.triggeredImage = im
                 # TODO: consider putting this after the scan if it slows down the time until the scan, just make sure I get the correct frame (which I have here in im)
                 self._commChannel.snapImage.emit(self.fastDetector)
@@ -190,7 +202,7 @@ class SmartSTEDController(WidgetController):
                 self.__detLog["slowscan_x_center"] = coords_center_scan[0]
                 self.__detLog["slowscan_y_center"] = coords_center_scan[1]
                 self.runSlowScan(position=coords_center_scan)
-            self.updateScatter(coords_detected)
+                self.updateScatter(coords_detected, clear=True)
             self.__bkg = im
 
     def addImgBinStack(self, im):
@@ -210,26 +222,39 @@ class SmartSTEDController(WidgetController):
         self.__binary_stack = None
         self._master.lasersManager.execOn('488', lambda l: l.setEnabled(True))
         self._commChannel.updateImage.connect(self.addImgBinStack)
+        self._widget.recordBinaryMaskButton.setText('Recording...')
 
     def calculateBinaryMask(self):
         img_mean = np.mean(self.__binary_stack,0)
         img_bin = ndi.filters.gaussian_filter(img_mean, np.float(self._widget.bin_smooth_edit.text())) 
         self.__binary_mask = np.array(img_bin > np.float(self._widget.bin_thresh_edit.text()))
+        self._widget.recordBinaryMaskButton.setText('Record binary mask')
         #print(np.mean(self.__binary_mask))
-        self.showBinaryMask()
+        self.setAnalysisHelpImg(self.__binary_mask)
+        self.launchAnalysisHelpWidget()
 
-    def showBinaryMask(self):
-        img_box = self._widget.showBinaryWidget.img
-        img_vb = self._widget.showBinaryWidget.imgVb
-        img_box.setOnlyRenderVisible(True, render=False)
-        img_box.setImage(self.__binary_mask, autoLevels=True, autoDownsample=False)
-        img_shape = np.shape(self.__binary_mask)
-        guitools.setBestImageLimits(img_vb, img_shape[1], img_shape[0])
-        img_box.render()
-        self._widget.launchHelpWidget(self._widget.showBinaryWidget, init=True)
+    def launchAnalysisHelpWidget(self):
+        self._widget.launchHelpWidget(self._widget.analysisHelpWidget, init=True)
 
-    def updateScatter(self, coords):
-        self.__scatterPlot.setData(x=coords[0,:], y=coords[1,:], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
+    def setAnalysisHelpImg(self, img_ana):
+        self._widget.analysisHelpWidget.img.setOnlyRenderVisible(True, render=False)
+        print(np.max(img_ana))
+        print(np.min(img_ana))
+        print(np.mean(img_ana))
+        self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=True, autoDownsample=False)
+        img_shape = np.shape(img_ana)
+        guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])
+        self._widget.analysisHelpWidget.img.render()
+
+    def updateScatter(self, coords, clear=True):
+        if np.size(coords) > 0:
+            print(coords)
+            #print(coords[:,0])
+            #print(coords[0,:])
+            self.__scatterPlot.setData(x=coords[:,0], y=coords[:,1], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
+            if np.size(coords) > 2:
+                coord_primary = coords[0,:]
+                self.__scatterPlot.addPoints(x=[coord_primary[0]], y=[coord_primary[1]], pen=pg.mkPen(None), brush='r', symbol='x', size=25)
 
     def addScatter(self):
         """ Adds the scatter points from pipeline output to ImageWidget viewbox through the CommunicationChannel. """

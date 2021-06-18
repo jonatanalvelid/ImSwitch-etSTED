@@ -5,7 +5,7 @@ from scipy.spatial import cKDTree, distance
 
 def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1):
     f_multiply = 100
-    if bkg is None or binary_mask is None:
+    if bkg is None or binary_mask is None or np.shape(img) != np.shape(bkg):
         print('You have to provide a background image and a binary mask for this pipeline!')
         img_ana = np.zeros(np.shape(img))
     else:
@@ -17,7 +17,7 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
         # divide by last image to get percentual change in img
         img_div = bkg
         # replace noise with a very high value to avoid detecting noise
-        img_div[img_div < noise_level] = 1#00000
+        img_div[img_div < noise_level] = 100000
         img_ana = np.divide(img_ana, img_div)
         img_ana = img_ana * binary_mask
         
@@ -28,7 +28,13 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
     "Peak_local_max all-in-one as a combo of opencv and numpy"
     thresh_abs = thresh_abs * f_multiply
     size = np.int(2 * min_dist + 1)
+    img_ana = np.clip(img_ana, a_min=0, a_max=None)
     img_ana = (img_ana * f_multiply).astype('uint16')
+    #print('')
+    #print(np.max(img_ana))
+    #print(np.min(img_ana))
+    #print(np.mean(img_ana))
+    #print('')
     #print(5)
     # get filter structuring element
     footprint = cv2.getStructuringElement(cv2.MORPH_RECT, ksize=[size,size])
@@ -89,8 +95,8 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
     if len(coordinates) > num_peaks:
         coordinates = coordinates[:num_peaks]
     #print(12)
-
+    coordinates = np.flip(coordinates,axis=1)
     if testmode:
-        return coordinates, mask#, img_ana
+        return coordinates, img_ana
     else:
         return coordinates

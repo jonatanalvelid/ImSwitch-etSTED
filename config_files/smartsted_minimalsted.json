@@ -93,27 +93,26 @@
             "valueRangeStep": 1
         },
         "775AOM": {
-          "analogChannel": 3,
-          "digitalLine": 4,
-          "managerName": "NidaqLaserManager",
-          "managerProperties": {
-          },
-          "wavelength": 775,
-          "valueRangeMin": 0,
-          "valueRangeMax": 10,
-          "valueRangeStep": 0.1
+            "analogChannel": 3,
+            "digitalLine": 4,
+            "managerName": "NidaqLaserManager",
+            "managerProperties": {},
+            "wavelength": 775,
+            "valueRangeMin": 0,
+            "valueRangeMax": 10,
+            "valueRangeStep": 0.1
         },
         "775Katana": {
-          "analogChannel": null,
-          "digitalLine": null,
-          "managerName": "KatanaLaserManager",
-          "managerProperties": {
-            "rs232device": "katana"
-          },
-          "wavelength": 775,
-          "valueRangeMin": 0,
-          "valueRangeMax": 3100,
-          "valueRangeStep": 1
+            "analogChannel": null,
+            "digitalLine": null,
+            "managerName": "KatanaLaserManager",
+            "managerProperties": {
+                "rs232device": "katana"
+            },
+            "wavelength": 775,
+            "valueRangeMin": 0,
+            "valueRangeMax": 3100,
+            "valueRangeStep": 1
         }
     },
     "positioners": {
@@ -212,20 +211,20 @@
             }
         },
         "katana": {
-          "managerName": "RS232Manager",
-          "managerProperties": {
-            "port": "ASRL8::INSTR",
-            "encoding": "ascii",
-            "recv_termination": "\n",
-            "send_termination": "\n",
-            "baudrate": 38400,
-            "bytesize": 8,
-            "parity": "none",
-            "stopbits": 1,
-            "rtscts": "false",
-            "dsrdtr": "false",
-            "xonxoff": "false"
-          }
+            "managerName": "RS232Manager",
+            "managerProperties": {
+                "port": "ASRL8::INSTR",
+                "encoding": "ascii",
+                "recv_termination": "\n",
+                "send_termination": "\n",
+                "baudrate": 38400,
+                "bytesize": 8,
+                "parity": "none",
+                "stopbits": 1,
+                "rtscts": "false",
+                "dsrdtr": "false",
+                "xonxoff": "false"
+            }
         }
     },
     "scan": {
@@ -238,13 +237,13 @@
         }
     },
     "slm": {
-      "monitorIdx": 2,
-      "width": 792,
-      "height": 600,
-      "wavelength": 775,
-      "pixelsize": 0.02,
-      "angle_mount": 0.15,
-      "correctionPatternsDir": "C:\\Users\\STEDRed\\Documents\\HamamatsuSLM\\deform_corr_patterns\\"
+        "monitorIdx": 2,
+        "width": 792,
+        "height": 600,
+        "wavelength": 775,
+        "pixelsize": 0.02,
+        "angle_mount": 0.15,
+        "correctionPatternsDir": "C:\\Users\\STEDRed\\Documents\\HamamatsuSLM\\deform_corr_patterns\\"
     },
     "focusLock": null,
     "smartSTED": {
@@ -262,29 +261,17 @@
             "w": 2448,
             "h": 2048
         },
-        "smartSTED_wf": {
-            "x": 400,
-            "y": 400,
-            "w": 1000,
-            "h": 1000
-        },
-        "SmallROI": {
-            "x": 0,
-            "y": 0,
-            "w": 256,
-            "h": 256
-        },
-        "80x80umscan": {
-            "x": 300,
-            "y": 300,
-            "w": 1800,
-            "h": 1800
-        },
-        "80x80umScan2": {
+        "scan_80x80": {
             "x": 100,
             "y": 350,
-            "w": 1700,
-            "h": 1700
+            "w": 1500,
+            "h": 1500
+        },
+        "smartsted": {
+            "x": 200,
+            "y": 500,
+            "w": 1500,
+            "h": 1500
         }
     },
     "availableWidgets": {

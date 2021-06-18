@@ -34,8 +34,10 @@ class CameraTIS:
         #    self.cam.register_frame_ready_callback()  # needed to wait for frame ready callback
         #self.prepare_live()
 
+        #TODO: CHECK IF OK: removed ".encode('utf-8')" from all str in cam.function(str)s, add back in case necessary. Depends on conda environment/package versions it seems like.
+        # EXAMPLE: self.roi_filter = self.cam.create_frame_filter('ROI'.encode('utf-8'))
         # initiate one and only frame filter
-        self.roi_filter = self.cam.create_frame_filter('ROI'.encode('utf-8'))
+        self.roi_filter = self.cam.create_frame_filter('ROI')#.encode('utf-8'))
         self.cam.add_frame_filter_to_device(self.roi_filter)
         #self.cam.frame_filter_set_parameter(self.roi_filter, 'Top'.encode('utf-8'), 0)
         #self.cam.frame_filter_set_parameter(self.roi_filter, 'Left'.encode('utf-8'), 0)
@@ -46,14 +48,14 @@ class CameraTIS:
         hsize = max(hsize, 256)  # minimum ROI size
         vsize = max(vsize, 24)  # minimum ROI size
         #print(f'{self.model}: setROI started with {hsize}x{vsize} at {hpos},{vpos}.')
-        self.cam.frame_filter_set_parameter(self.roi_filter, 'Top'.encode('utf-8'), vpos)
-        self.cam.frame_filter_set_parameter(self.roi_filter, 'Left'.encode('utf-8'), hpos)
-        self.cam.frame_filter_set_parameter(self.roi_filter, 'Height'.encode('utf-8'), vsize)
-        self.cam.frame_filter_set_parameter(self.roi_filter, 'Width'.encode('utf-8'), hsize)
-        top = self.cam.frame_filter_get_parameter(self.roi_filter, 'Top'.encode('utf-8'))
-        left = self.cam.frame_filter_get_parameter(self.roi_filter, 'Left'.encode('utf-8'))
-        hei = self.cam.frame_filter_get_parameter(self.roi_filter, 'Height'.encode('utf-8'))
-        wid = self.cam.frame_filter_get_parameter(self.roi_filter, 'Width'.encode('utf-8'))
+        self.cam.frame_filter_set_parameter(self.roi_filter, 'Top', vpos)
+        self.cam.frame_filter_set_parameter(self.roi_filter, 'Left', hpos)
+        self.cam.frame_filter_set_parameter(self.roi_filter, 'Height', vsize)
+        self.cam.frame_filter_set_parameter(self.roi_filter, 'Width', hsize)
+        top = self.cam.frame_filter_get_parameter(self.roi_filter, 'Top')
+        left = self.cam.frame_filter_get_parameter(self.roi_filter, 'Left')
+        hei = self.cam.frame_filter_get_parameter(self.roi_filter, 'Height')
+        wid = self.cam.frame_filter_get_parameter(self.roi_filter, 'Width')
         #print(f'{self.model}: setROI finished, following params are set: {wid}x{hei} at {left},{top}')
 
     def start_live(self):

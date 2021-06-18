@@ -6,6 +6,7 @@ Created on Tue Apr 13 2021
 from numpy.lib.function_base import asarray_chkfinite
 import constants
 import os
+import ctypes
 import importlib
 import h5py
 
@@ -21,6 +22,33 @@ import numpy as np
 
 from .basecontrollers import WidgetController
 import view.guitools as guitools
+
+# HIGH-RES TIMING FUNCTIONS FROM https://stackoverflow.com/questions/38319606/how-can-i-get-millisecond-and-microsecond-resolution-timestamps-in-python/38319607#38319607
+def micros():
+    "return a timestamp in microseconds (us)"
+    tics = ctypes.c_int64()
+    freq = ctypes.c_int64()
+
+    #get ticks on the internal ~2MHz QPC clock
+    ctypes.windll.Kernel32.QueryPerformanceCounter(ctypes.byref(tics)) 
+    #get the actual freq. of the internal ~2MHz QPC clock
+    ctypes.windll.Kernel32.QueryPerformanceFrequency(ctypes.byref(freq))  
+    
+    t_us = tics.value*1e6/freq.value
+    return t_us
+    
+def millis():
+    "return a timestamp in milliseconds (ms)"
+    tics = ctypes.c_int64()
+    freq = ctypes.c_int64()
+
+    #get ticks on the internal ~2MHz QPC clock
+    ctypes.windll.Kernel32.QueryPerformanceCounter(ctypes.byref(tics)) 
+    #get the actual freq. of the internal ~2MHz QPC clock 
+    ctypes.windll.Kernel32.QueryPerformanceFrequency(ctypes.byref(freq)) 
+    
+    t_ms = tics.value*1e3/freq.value
+    return t_ms
 
 class SmartSTEDController(WidgetController):
     def __init__(self, *args, **kwargs):
@@ -167,16 +195,19 @@ class SmartSTEDController(WidgetController):
 
             self.__busy = True
             
-            t_pre = datetime.now()
+            #t_pre = datetime.now()
+            t_pre = millis()
             if self.__testmode:
                 coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, self.__testmode, *self.__param_vals)
             else:
                 coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__testmode, *self.__param_vals)
-            t_post = datetime.now()
+            #t_post = datetime.now()
+            t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             #self.time_curr_bef = round(t_pre.microsecond/1000)
             #self.time_curr_aft = round(t_post.microsecond/1000)
-            print(f'Time for pipeline: {round(t_post.microsecond/1000)-round(t_pre.microsecond/1000)} ms')
+            #print(f'Time for pipeline: {round(t_post.microsecond/1000)-round(t_pre.microsecond/1000)} ms')
+            print(f'Time for pipeline: {t_post-t_pre} ms')
 
             self.__busy = False
             if self.__testmode:
@@ -229,7 +260,6 @@ class SmartSTEDController(WidgetController):
         img_bin = ndi.filters.gaussian_filter(img_mean, np.float(self._widget.bin_smooth_edit.text())) 
         self.__binary_mask = np.array(img_bin > np.float(self._widget.bin_thresh_edit.text()))
         self._widget.recordBinaryMaskButton.setText('Record binary mask')
-        #print(np.mean(self.__binary_mask))
         self.setAnalysisHelpImg(self.__binary_mask)
         self.launchAnalysisHelpWidget()
 
@@ -238,18 +268,18 @@ class SmartSTEDController(WidgetController):
 
     def setAnalysisHelpImg(self, img_ana):
         self._widget.analysisHelpWidget.img.setOnlyRenderVisible(True, render=False)
-        print(np.max(img_ana))
-        print(np.min(img_ana))
-        print(np.mean(img_ana))
         self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=True, autoDownsample=False)
         img_shape = np.shape(img_ana)
         guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])
         self._widget.analysisHelpWidget.img.render()
 
     def updateScatter(self, coords, clear=True):
+        #TODO: fix so that it clears sometimes as well.
         if np.size(coords) > 0:
-            print(coords)
+            #print(coords)
+            #print('all x')
             #print(coords[:,0])
+            #print('first peak')
             #print(coords[0,:])
             self.__scatterPlot.setData(x=coords[:,0], y=coords[:,1], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
             if np.size(coords) > 2:

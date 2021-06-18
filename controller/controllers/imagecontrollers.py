@@ -611,7 +611,7 @@ class RecorderController(WidgetController):
         self._commChannel.updateRecFrameNum.connect(self.updateRecFrameNum)
         self._commChannel.updateRecTime.connect(self.updateRecTime)
         self._commChannel.endScan.connect(self.scanDone)
-        self._commChannel.snapImage.connect(self.snap)
+        self._commChannel.snapImage.connect(self.snap_spec)
 
         # Connect RecordingWidget signals
         self._widget.detectorList.currentIndexChanged.connect(self.setDetectorsToCapture)
@@ -656,12 +656,21 @@ class RecorderController(WidgetController):
             self._widget.filenameEdit.setEnabled(False)
             self._widget.filenameEdit.setText('Current time')
 
+    def snap_spec(self, *args):
+        """ Take a snap of a specific detector and save it to a .hdf5 file. """
+        detectorNames = (args)
+        folder = self._widget.folderEdit.text()
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        time.sleep(0.01)
+        name = os.path.join(folder, self.getFileName()) + '_snap'
+        savename = guitools.getUniqueName(name)
+        attrs = self._commChannel.getCamAttrs()
+        self._master.recordingManager.snap(detectorNames, savename, attrs)
+
     def snap(self, *args):
         """ Take a snap and save it to a .hdf5 file. """
-        if args:
-            detectorNames = (args)
-        else:
-            detectorNames = self.getDetectorsToCapture()
+        detectorNames = self.getDetectorsToCapture()
         folder = self._widget.folderEdit.text()
         if not os.path.exists(folder):
             os.mkdir(folder)

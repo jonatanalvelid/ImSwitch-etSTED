@@ -781,6 +781,26 @@ class RecorderController(WidgetController):
     def updateRecTime(self, t):
         self._widget.currentTime.setText(str(t) + ' /')
 
+    #def execScanLapse(self, frames=1):
+    #    self._widget.numExpositionsEdit.setEnabled(False)
+    #    self._widget.timeToRec.setEnabled(False)
+    #    self._widget.timeLapseEdit.setEnabled(True)
+    #    self._widget.totalSlices.setEnabled(False)
+    #    self._widget.freqEdit.setEnabled(True)
+    #    self._widget.stepSizeEdit.setEnabled(False)
+    #    self.lapseCurrent += 1
+    #    if self.lapseCurrent < self.lapseTotal:
+    #        self._master.recordingManager.endRecording(emitSignal=False)
+    #        self._widget.currentLapse.setText(str(self.lapseCurrent) + ' / ')
+    #        self.timer = Timer(singleShot=True)
+    #        self.timer.timeout.connect(self.nextLapse)
+    #        self.timer.start(int(float(self._widget.freqEdit.text()) * 1000))
+    #    else:
+    #        self._widget.recButton.setChecked(False)
+    #        self.lapseCurrent = 0
+    #        self._widget.currentLapse.setText(str(self.lapseCurrent) + ' / ')
+    #        self._master.recordingManager.endRecording()
+
     def specFrames(self):
         self._widget.numExpositionsEdit.setEnabled(True)
         self._widget.timeToRec.setEnabled(False)

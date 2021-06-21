@@ -79,6 +79,7 @@ class FocusLockInfo:
 class SmartSTEDInfo:
     fastDetector: str
     slowDetector: str
+    fastLaser: str
 
 
 @dataclass(frozen=True)

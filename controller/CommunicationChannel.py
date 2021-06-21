@@ -50,6 +50,10 @@ class CommunicationChannel(SignalInterface):
 
     toggleBlockScanWidget = Signal(bool)
 
+    requestScanParameters = Signal()
+
+    sendScanParameters = Signal(dict, dict)  # (analogparams, digitalparams)
+
     def __init__(self, main):
         super().__init__()
         self.__main = main

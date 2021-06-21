@@ -55,9 +55,11 @@ class SmartSTEDWidget(Widget):
         
         self.coordTransfCalibButton = guitools.BetterPushButton('Transform calibration')
         self.recordBinaryMaskButton = guitools.BetterPushButton('Record binary mask')
+        self.loadScanParametersButton = guitools.BetterPushButton('Load scan parameters')
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
         self.visualizeOnlyCheck = QtGui.QCheckBox('Visualize only')
+        self.timelapseScanCheck = QtGui.QCheckBox('Timelapse scan')
 
         self.bin_thresh_label = QtGui.QLabel('Bin. threshold')
         self.bin_thresh_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
@@ -65,18 +67,21 @@ class SmartSTEDWidget(Widget):
         self.bin_smooth_label = QtGui.QLabel('Bin. smooth (px)')
         self.bin_smooth_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.bin_smooth_edit = QtGui.QLineEdit(str(2))
+        self.timelapse_reps_label = QtGui.QLabel('Timelapse frames')
+        self.timelapse_reps_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.timelapse_reps_edit = QtGui.QLineEdit(str(1))
 
-        self.im_param_label = QtGui.QLabel('ROI parameters')
-        self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
-        self.im_size_label = QtGui.QLabel('ROI size (µm)')
-        self.im_size_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
-        self.im_size_edit = QtGui.QLineEdit(str(3))
-        self.px_size_label = QtGui.QLabel('Step size (µm)')
-        self.px_size_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
-        self.px_size_edit = QtGui.QLineEdit(str(0.03))
-        self.dw_time_label = QtGui.QLabel('Dwell time (ms)')
-        self.dw_time_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
-        self.dw_time_edit = QtGui.QLineEdit(str(0.01))
+        #self.im_param_label = QtGui.QLabel('ROI parameters')
+        #self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        #self.im_size_label = QtGui.QLabel('ROI size (µm)')
+        #self.im_size_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        #self.im_size_edit = QtGui.QLineEdit(str(3))
+        #self.px_size_label = QtGui.QLabel('Step size (µm)')
+        #self.px_size_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        #self.px_size_edit = QtGui.QLineEdit(str(0.03))
+        #self.dw_time_label = QtGui.QLabel('Dwell time (ms)')
+        #self.dw_time_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        #self.dw_time_edit = QtGui.QLineEdit(str(0.01))
 
         # mini widget for coordinate transform
         self.coordTransformWidget = CoordTransformWidget(*args, **kwargs)
@@ -107,21 +112,25 @@ class SmartSTEDWidget(Widget):
         self.grid.addWidget(self.initiateButton, currentRow, 0)
         self.grid.addWidget(self.endlessScanCheck, currentRow, 1)
         self.grid.addWidget(self.visualizeOnlyCheck, currentRow, 2)
+        self.grid.addWidget(self.loadScanParametersButton, currentRow, 4)
         self.grid.addWidget(self.recordBinaryMaskButton, currentRow, 5)
         
         currentRow += 2
 
         # add image and pixel size parameters to grid
         # add param name and param to grid
-        self.grid.addWidget(self.im_param_label, currentRow, 0)
-        self.grid.addWidget(self.im_size_label, currentRow-1, 1)
-        self.grid.addWidget(self.px_size_label, currentRow-1, 2)
-        self.grid.addWidget(self.dw_time_label, currentRow-1, 3)
+        #self.grid.addWidget(self.im_param_label, currentRow, 0)
+        #self.grid.addWidget(self.im_size_label, currentRow-1, 1)
+        #self.grid.addWidget(self.px_size_label, currentRow-1, 2)
+        #self.grid.addWidget(self.dw_time_label, currentRow-1, 3)
+        self.grid.addWidget(self.timelapseScanCheck, currentRow-1, 2)
+        self.grid.addWidget(self.timelapse_reps_label, currentRow-1, 3)
         self.grid.addWidget(self.bin_thresh_label, currentRow-1, 4)
         self.grid.addWidget(self.bin_smooth_label, currentRow-1, 5)
-        self.grid.addWidget(self.im_size_edit, currentRow, 1)
-        self.grid.addWidget(self.px_size_edit, currentRow, 2)
-        self.grid.addWidget(self.dw_time_edit, currentRow, 3)
+        #self.grid.addWidget(self.im_size_edit, currentRow, 1)
+        #self.grid.addWidget(self.px_size_edit, currentRow, 2)
+        #self.grid.addWidget(self.dw_time_edit, currentRow, 3)
+        self.grid.addWidget(self.timelapse_reps_edit, currentRow, 3)
         self.grid.addWidget(self.bin_thresh_edit, currentRow, 4)
         self.grid.addWidget(self.bin_smooth_edit, currentRow, 5)
 
@@ -192,7 +201,6 @@ class CoordTransformWidget(Widget):
         self.hiResVb.addItem(self.hiResImg)
         self.loResVb.setAspectLocked(True)
         self.hiResVb.setAspectLocked(True)
-        #self.loResVb.invertY()
 
         self.loResScatterPlot = pg.ScatterPlotItem()
         self.hiResScatterPlot = pg.ScatterPlotItem()

@@ -7,7 +7,8 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
     f_multiply = 100
     if bkg is None or binary_mask is None or np.shape(img) != np.shape(bkg):
         print('You have to provide a background image and a binary mask for this pipeline!')
-        img_ana = np.zeros(np.shape(img))
+        #img_ana = np.zeros(np.shape(img))
+        img_ana = np.random.random(np.shape(img))*np.random.random()
     else:
         #print(1)
         # subtract last img (noisier, but quicker)

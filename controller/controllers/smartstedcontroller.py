@@ -303,6 +303,8 @@ class SmartSTEDController(WidgetController):
     def setAnalysisHelpImg(self, img_ana):
         self._widget.analysisHelpWidget.img.setOnlyRenderVisible(True, render=False)
         self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=True, autoDownsample=False)
+        infotext = f'Min int.: {np.min(img_ana)}, max int.: {np.max(img_ana)} (counts)'
+        self._widget.analysisHelpWidget.info_label.setText(infotext)
         img_shape = np.shape(img_ana)
         guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])
         self._widget.analysisHelpWidget.img.render()
@@ -339,6 +341,7 @@ class SmartSTEDController(WidgetController):
         except:
             #TODO: should raise an error here probably, but that does not crash the program.
             return
+        self.scanInfoDict['throw_delay'] = np.float(self._widget.throw_delay_edit.text())
         dt = datetime.now()
         time_curr_aft = round(dt.microsecond/1000)
         print(f'Time for curve parameters: {time_curr_mid-time_curr_bef} ms')

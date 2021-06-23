@@ -70,6 +70,9 @@ class SmartSTEDWidget(Widget):
         self.timelapse_reps_label = QtGui.QLabel('Timelapse frames')
         self.timelapse_reps_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.timelapse_reps_edit = QtGui.QLineEdit(str(1))
+        self.throw_delay_label = QtGui.QLabel('Throw delay (us)')
+        self.throw_delay_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
+        self.throw_delay_edit = QtGui.QLineEdit(str(100))
 
         #self.im_param_label = QtGui.QLabel('ROI parameters')
         #self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
@@ -87,7 +90,7 @@ class SmartSTEDWidget(Widget):
         self.coordTransformWidget = CoordTransformWidget(*args, **kwargs)
         self.coordTransformWidget.initControls()
 
-        # mini widget for showing the binary object image
+        # mini widget for showing images from the analysis pipelines, i.e. binary masks or 
         self.analysisHelpWidget = Widget(*args, **kwargs)
         self.analysisHelpWidget.imgVbWidget = pg.GraphicsLayoutWidget()
         self.analysisHelpWidget.imgVb = self.analysisHelpWidget.imgVbWidget.addViewBox(row=1, col=1)
@@ -97,10 +100,13 @@ class SmartSTEDWidget(Widget):
 
         self.analysisHelpWidget.imgVb.addItem(self.analysisHelpWidget.img)
         self.analysisHelpWidget.imgVb.setAspectLocked(True)
+
+        self.analysisHelpWidget.info_label = QtGui.QLabel('<image info>')
         
         self.analysisHelpWidget.grid = QtGui.QGridLayout()
         self.analysisHelpWidget.setLayout(self.analysisHelpWidget.grid)
-        self.analysisHelpWidget.grid.addWidget(self.analysisHelpWidget.imgVbWidget, 0, 0)
+        self.analysisHelpWidget.grid.addWidget(self.analysisHelpWidget.info_label, 0, 0)
+        self.analysisHelpWidget.grid.addWidget(self.analysisHelpWidget.imgVbWidget, 1, 0)
 
         self.grid = QtGui.QGridLayout()
         self.setLayout(self.grid)
@@ -122,14 +128,14 @@ class SmartSTEDWidget(Widget):
         #self.grid.addWidget(self.im_param_label, currentRow, 0)
         #self.grid.addWidget(self.im_size_label, currentRow-1, 1)
         #self.grid.addWidget(self.px_size_label, currentRow-1, 2)
-        #self.grid.addWidget(self.dw_time_label, currentRow-1, 3)
+        self.grid.addWidget(self.throw_delay_label, currentRow-1, 3)
         self.grid.addWidget(self.timelapseScanCheck, currentRow-1, 2)
         self.grid.addWidget(self.timelapse_reps_label, currentRow-1, 3)
         self.grid.addWidget(self.bin_thresh_label, currentRow-1, 4)
         self.grid.addWidget(self.bin_smooth_label, currentRow-1, 5)
         #self.grid.addWidget(self.im_size_edit, currentRow, 1)
         #self.grid.addWidget(self.px_size_edit, currentRow, 2)
-        #self.grid.addWidget(self.dw_time_edit, currentRow, 3)
+        self.grid.addWidget(self.throw_delay_edit, currentRow, 3)
         self.grid.addWidget(self.timelapse_reps_edit, currentRow, 3)
         self.grid.addWidget(self.bin_thresh_edit, currentRow, 4)
         self.grid.addWidget(self.bin_smooth_edit, currentRow, 5)

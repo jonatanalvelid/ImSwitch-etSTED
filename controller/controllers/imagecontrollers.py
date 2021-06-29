@@ -612,6 +612,7 @@ class RecorderController(WidgetController):
         self._commChannel.updateRecTime.connect(self.updateRecTime)
         self._commChannel.endScan.connect(self.scanDone)
         self._commChannel.snapImage.connect(self.snap_spec)
+        self._commChannel.snapImagePrev.connect(self.snap_img)
 
         # Connect RecordingWidget signals
         self._widget.detectorList.currentIndexChanged.connect(self.setDetectorsToCapture)
@@ -667,6 +668,20 @@ class RecorderController(WidgetController):
         savename = guitools.getUniqueName(name)
         attrs = self._commChannel.getCamAttrs()
         self._master.recordingManager.snap(detectorNames, savename, attrs)
+
+    def snap_img(self, *args):
+        """ Snap an already taken image and save it to a .hdf5 file. """
+        args = list(args)
+        detectorName = (args[0])
+        image = args[1]
+        folder = self._widget.folderEdit.text()
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        time.sleep(0.01)
+        name = os.path.join(folder, self.getFileName()) + '_snap'
+        savename = guitools.getUniqueName(name)
+        attrs = self._commChannel.getCamAttrs()
+        self._master.recordingManager.snapImage(detectorName, savename, image, attrs)
 
     def snap(self, *args):
         """ Take a snap and save it to a .hdf5 file. """

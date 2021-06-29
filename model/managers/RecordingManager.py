@@ -71,6 +71,23 @@ class RecordingManager(SignalInterface):
             print('dataset saved')
             file.close()
 
+    def snapImage(self, detectorName, savename, image, attrs):
+        file = h5py.File(f'{savename}_{detectorName}.hdf5', 'w', track_order=True)
+        
+        shape = image.shape
+        #print(shape)
+        dataset = file.create_dataset(f'data:{detectorName}', (shape[0], shape[1]), dtype='i2')
+
+        for key, value in attrs[detectorName].items():
+            #print(key)
+            #print(value)
+            file.attrs[key] = value
+            dataset.attrs[key] = value
+
+        dataset[:, :] = image
+        print('dataset saved')
+        file.close()
+
 
 class RecordingWorker(Worker):
     def __init__(self, recordingManager):

@@ -144,7 +144,7 @@ class ScanWorker(Worker):
         #self._throw_delay = int(13*20e6/100e3)  # TODO: calculate somehow, the phase delay from scanning signal to when the scanner is actually in the correct place. How do we find this out? Depends on the response of the galvos, can we measure this somehow?
         #self._throw_delay = 15200
         if 'throw_delay' in scanInfoDict:
-            self._throw_delay = scanInfoDict['throw_delay']
+            self._throw_delay = int(scanInfoDict['throw_delay'])
         else:
             self._throw_delay = 25
 

@@ -44,6 +44,8 @@ class CommunicationChannel(SignalInterface):
 
     snapImage = Signal(str)  # (detector)
 
+    snapImagePrev = Signal(str, np.ndarray)  # (detector, image)
+
     moveZstage = Signal(float)  # (step)
 
     toggleLiveview = Signal(bool)

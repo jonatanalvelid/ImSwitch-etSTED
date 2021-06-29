@@ -4,11 +4,13 @@ Created on Tue Apr 13 2021
 @author: jonatanalvelid
 """
 from numpy.lib.function_base import asarray_chkfinite
+from pyicic import IC_ImagingControl
 import constants
 import os
 import ctypes
 import importlib
 import h5py
+from collections import deque
 
 from datetime import datetime
 from inspect import signature
@@ -94,9 +96,11 @@ class SmartSTEDController(WidgetController):
         self.__busy = False
         self.__testmode = False
         self.__bkg = None
+        self.__prevFrames = deque(maxlen=5)
         self.__binary_mask = None
         self.__binary_stack = None
         self.__binary_frames = 10
+        self.__frame = 0
 
     def initiate(self):
         if not self.__running:
@@ -133,6 +137,7 @@ class SmartSTEDController(WidgetController):
             self.__scatterPlot.hide()
             self._widget.initiateButton.setText('Initiate')
             self.__running = False
+            self.__frame = 0
         
     def endScan(self):
         if self.timelapse:
@@ -150,6 +155,7 @@ class SmartSTEDController(WidgetController):
         else:
             self.endRecording()
             self.continueFastModality()
+        self.__frame = 0
 
     def endRecording(self):
         # save log file with temporal info of trigger event
@@ -234,35 +240,37 @@ class SmartSTEDController(WidgetController):
             print(f'Time for pipeline: {t_post-t_pre} ms')
 
             self.__busy = False
-            if self.__testmode:
-                self.updateScatter(coords_detected, clear=True)
-                self.setAnalysisHelpImg(img_ana)
-            elif coords_detected.size != 0:
-                #print(self.fastDetector)
-                if np.size(coords_detected) > 2:
-                    coords_scan = coords_detected[0,:]
-                else:
-                    coords_scan = coords_detected
-                print(coords_scan)
-                #self.triggeredImage = im
-                # TODO: consider putting this after the scan if it slows down the time until the scan, just make sure I get the correct frame (which I have here in im)
-                self._commChannel.snapImage.emit(self.fastDetector)
-                self.pauseFastModality()
-                self.__detLog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
-                coords_center_scan = self.transform(coords_scan, self.__transformCoeffs)
-                self.__detLog["fastscan_x_center"] = coords_scan[0]
-                self.__detLog["fastscan_y_center"] = coords_scan[1]
-                self.__detLog["slowscan_x_center"] = coords_center_scan[0]
-                self.__detLog["slowscan_y_center"] = coords_center_scan[1]
-                self.__detLog["scan_initiate"] = datetime.now().strftime('%Ss%fus')
-                self.timelapse = self._widget.timelapseScanCheck.isChecked()
-                if self.timelapse:
-                    self.frame = 0
-                    self.frames_tot = int(self._widget.timelapse_reps_edit.text())
-                self.initiateSlowScan(position=coords_center_scan)
-                self.runSlowScan()
-                self.updateScatter(coords_detected, clear=True)
+            if self.__frame > 5:
+                if self.__testmode:
+                    self.updateScatter(coords_detected, clear=True)
+                    self.setAnalysisHelpImg(img_ana)
+                elif coords_detected.size != 0:
+                    if np.size(coords_detected) > 2:
+                        coords_scan = coords_detected[0,:]
+                    else:
+                        coords_scan = coords_detected
+                    print(coords_scan)
+                    self.pauseFastModality()
+                    self.__detLog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
+                    coords_center_scan = self.transform(coords_scan, self.__transformCoeffs)
+                    self.__detLog["fastscan_x_center"] = coords_scan[0]
+                    self.__detLog["fastscan_y_center"] = coords_scan[1]
+                    self.__detLog["slowscan_x_center"] = coords_center_scan[0]
+                    self.__detLog["slowscan_y_center"] = coords_center_scan[1]
+                    self.__detLog["scan_initiate"] = datetime.now().strftime('%Ss%fus')
+                    self.timelapse = self._widget.timelapseScanCheck.isChecked()
+                    if self.timelapse:
+                        self.frame = 0
+                        self.frames_tot = int(self._widget.timelapse_reps_edit.text())
+                    self.initiateSlowScan(position=coords_center_scan)
+                    self.runSlowScan()
+                    self.updateScatter(coords_detected, clear=True)
+                    for img in self.__prevFrames:
+                        self._commChannel.snapImagePrev.emit(self.fastDetector, img)
+                    self._commChannel.snapImagePrev.emit(self.fastDetector, im)
             self.__bkg = im
+            self.__prevFrames.append(im)
+            self.__frame += 1
 
     def assignScanParameters(self, analogDict, digitalDict):
         self._analogParameterDict = analogDict
@@ -303,7 +311,7 @@ class SmartSTEDController(WidgetController):
     def setAnalysisHelpImg(self, img_ana):
         self._widget.analysisHelpWidget.img.setOnlyRenderVisible(True, render=False)
         self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=True, autoDownsample=False)
-        infotext = f'Min int.: {np.min(img_ana)}, max int.: {np.max(img_ana)} (counts)'
+        infotext = f'Min int.: {np.min(img_ana)}, max int.: {np.max(img_ana)/100} (counts)'
         self._widget.analysisHelpWidget.info_label.setText(infotext)
         img_shape = np.shape(img_ana)
         guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])

@@ -248,7 +248,8 @@
     "focusLock": null,
     "smartSTED": {
         "fastDetector": "smartSTEDCamera",
-        "slowDetector": "APDred"
+        "slowDetector": "APDred",
+        "fastLaser": "488"
     },
     "designers": {
         "scanDesigner": "GalvoScanDesigner",

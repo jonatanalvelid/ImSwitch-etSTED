@@ -7,10 +7,11 @@ Created on Fri Mar 20 17:08:54 2020
 import textwrap
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui, QtCore
+from pyqtgraph.Qt import QtGui, QtCore, QtWidgets
 from model.managers.SLMManager import MaskMode
 import view.guitools as guitools
 from .basewidgets import Widget
+from pyqtgraph.parametertree import ParameterTree
 
 
 class PositionerWidget(Widget):
@@ -234,79 +235,100 @@ class BeadRecWidget(Widget):
 
 
 class SLMWidget(Widget):
-    ''' Widget containing slm interface. '''
+    """ Widget containing slm interface. """
+
+    sigSLMDisplayToggled = QtCore.Signal(bool)  # (enabled)
+    sigSLMMonitorChanged = QtCore.Signal(int)  # (monitor)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.slmDisplay = None
+
         self.slmFrame = pg.GraphicsLayoutWidget()
         self.vb = self.slmFrame.addViewBox(row=1, col=1)
         self.img = pg.ImageItem()
-        self.img.setImage(np.zeros((792,600)), autoLevels=True, autoDownsample=True, autoRange=True)
+        self.img.setImage(np.zeros((792, 600)), autoLevels=True, autoDownsample=True,
+                          autoRange=True)
         self.vb.addItem(self.img)
         self.vb.setAspectLocked(True)
 
-        self.slmParameterTree = pg.parametertree.ParameterTree()
-        self.generalparams = [{'name': 'General parameters', 'type': 'group', 'children': [
-                  {'name': 'Radius', 'type': 'float', 'value': 100, 'limits': (0, 600), 'step': 1, 'suffix': 'px'},
-                  {'name': 'Sigma', 'type': 'float', 'value': 35, 'limits': (1, 599), 'step': 0.1, 'suffix': 'px'},
-                  #{'name': 'Angle', 'type': 'float', 'value': 0.15, 'limits': (0, 0.3), 'step': 0.01, 'suffix': 'rad'},
-                  #{'name': 'Wavelength', 'type': 'float', 'value': 775, 'limits': (0, 1200), 'step': 1, 'suffix': 'nm'},
-                  #{'name': 'Helix rotation', 'type': 'bool', 'value': True},
-                  ]},
-                  {'name': 'Apply', 'type': 'action'}
-                  ]
-        self.slmParameterTree.setStyleSheet('''
+        self.slmParameterTree = ParameterTree()
+        self.generalparams = [{'name': 'general', 'type': 'group', 'children': [
+                            {'name': 'radius', 'type': 'float', 'value': 100, 'limits': (0, 600), 'step': 1,
+                            'suffix': 'px'},
+                            {'name': 'sigma', 'type': 'float', 'value': 35, 'limits': (1, 599), 'step': 0.1,
+                            'suffix': 'px'},
+                            {'name': 'rotationAngle', 'type': 'float', 'value': 0, 'limits': (-6.2832, 6.2832), 'step': 0.1,
+                            'suffix': 'rad'}
+                            ]}]
+        self.slmParameterTree.setStyleSheet("""
         QTreeView::item, QAbstractSpinBox, QComboBox {
             padding-top: 0;
             padding-bottom: 0;
             border: none;
         }
-        
+
         QComboBox QAbstractItemView {
             min-width: 128px;
         }
-        ''')
-        self.slmParameterTree.p = pg.parametertree.Parameter.create(name='params', type='group', children=self.generalparams)
+        """)
+        self.slmParameterTree.p = pg.parametertree.Parameter.create(name='params', type='group',
+                                                                    children=self.generalparams)
         self.slmParameterTree.setParameters(self.slmParameterTree.p, showTop=False)
         self.slmParameterTree._writable = True
 
         self.aberParameterTree = pg.parametertree.ParameterTree()
         aberlim = 2
-        self.aberparams = [{'name': 'Donut', 'type': 'group', 'children': [
-                    {'name': 'Tilt factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Tip factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Defocus factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Spherical factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Vertical coma factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Horizontal coma factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Vertical astigmatism factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Oblique astigmatism factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01}
-                 ]},
-                  {'name': 'Tophat', 'type': 'group', 'children': [
-                    {'name': 'Tilt factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Tip factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Defocus factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Spherical factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Vertical coma factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Horizontal coma factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Vertical astigmatism factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01},
-                    {'name': 'Oblique astigmatism factor', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim), 'step': 0.01}
-                  ]},
-                  {'name': 'Apply', 'type': 'action'}
-                  ] 
-        self.aberParameterTree.setStyleSheet('''
+        self.aberparams = [{'name': 'left', 'type': 'group', 'children': [
+            {'name': 'tilt', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim),
+             'step': 0.01},
+            {'name': 'tip', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim),
+             'step': 0.01},
+            {'name': 'defocus', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim),
+             'step': 0.01},
+            {'name': 'spherical', 'type': 'float', 'value': 0, 'limits': (-aberlim, aberlim),
+             'step': 0.01},
+            {'name': 'verticalComa', 'type': 'float', 'value': 0,
+             'limits': (-aberlim, aberlim), 'step': 0.01},
+            {'name': 'horizontalComa', 'type': 'float', 'value': 0,
+             'limits': (-aberlim, aberlim), 'step': 0.01},
+            {'name': 'verticalAstigmatism', 'type': 'float', 'value': 0,
+             'limits': (-aberlim, aberlim), 'step': 0.01},
+            {'name': 'obliqueAstigmatism', 'type': 'float', 'value': 0,
+             'limits': (-aberlim, aberlim), 'step': 0.01}
+        ]},
+                           {'name': 'right', 'type': 'group', 'children': [
+                               {'name': 'tilt', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01},
+                               {'name': 'tip', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01},
+                               {'name': 'defocus', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01},
+                               {'name': 'spherical', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01},
+                               {'name': 'verticalComa', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01},
+                               {'name': 'horizontalComa', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01},
+                               {'name': 'verticalAstigmatism', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01},
+                               {'name': 'obliqueAstigmatism', 'type': 'float', 'value': 0,
+                                'limits': (-aberlim, aberlim), 'step': 0.01}
+                           ]}]
+        self.aberParameterTree.setStyleSheet("""
         QTreeView::item, QAbstractSpinBox, QComboBox {
             padding-top: 0;
             padding-bottom: 0;
             border: none;
         }
-        
+
         QComboBox QAbstractItemView {
             min-width: 128px;
         }
-        ''')
-        self.aberParameterTree.p = pg.parametertree.Parameter.create(name='params', type='group', children=self.aberparams)
+        """)
+        self.aberParameterTree.p = pg.parametertree.Parameter.create(name='params', type='group',
+                                                                     children=self.aberparams)
         self.aberParameterTree.setParameters(self.aberParameterTree.p, showTop=False)
         self.aberParameterTree._writable = True
 
@@ -317,26 +339,45 @@ class SLMWidget(Widget):
         abertreeDock = pg.dockarea.Dock('Aberration correction parameters', size=(1, 1))
         abertreeDock.addWidget(self.aberParameterTree)
         self.paramtreeDockArea.addDock(abertreeDock, 'above', pmtreeDock)
+        
+        # Button for showing SLM display and spinbox for monitor selection
+        self.slmDisplayLayout = QtWidgets.QHBoxLayout()
+
+        self.slmDisplayButton = guitools.BetterPushButton('Show SLM display (fullscreen)')
+        self.slmDisplayButton.setCheckable(True)
+        self.slmDisplayButton.toggled.connect(self.sigSLMDisplayToggled)
+        self.slmDisplayLayout.addWidget(self.slmDisplayButton, 1)
+
+        self.slmMonitorLabel = QtWidgets.QLabel('Screen:')
+        self.slmDisplayLayout.addWidget(self.slmMonitorLabel)
+
+        self.slmMonitorBox = QtWidgets.QSpinBox()
+        self.slmMonitorBox.valueChanged.connect(self.sigSLMMonitorChanged)
+        self.slmDisplayLayout.addWidget(self.slmMonitorBox)
+
+        # Button to apply changes
+        self.applyChangesButton = guitools.BetterPushButton('Apply changes')
+        #self.paramtreeDockArea.addWidget(self.applyChangesButton, 'bottom', abertreeDock)
 
         # Control panel with most buttons
-        self.controlPanel = QtGui.QFrame()
-        self.controlPanel.choiceInterfaceLayout = QtGui.QGridLayout()
-        self.controlPanel.choiceInterface = QtGui.QWidget()
+        self.controlPanel = QtWidgets.QFrame()
+        self.controlPanel.choiceInterfaceLayout = QtWidgets.QGridLayout()
+        self.controlPanel.choiceInterface = QtWidgets.QWidget()
         self.controlPanel.choiceInterface.setLayout(self.controlPanel.choiceInterfaceLayout)
 
         # Choose which mask to modify
-        self.controlPanel.maskComboBox = QtGui.QComboBox()
+        self.controlPanel.maskComboBox = QtWidgets.QComboBox()
         self.controlPanel.maskComboBox.addItem("Donut (left)")
         self.controlPanel.maskComboBox.addItem("Top hat (right)")
-        self.controlPanel.choiceInterfaceLayout.addWidget(QtGui.QLabel('Select mask:'), 0, 0)
+        self.controlPanel.choiceInterfaceLayout.addWidget(QtWidgets.QLabel('Select mask:'), 0, 0)
         self.controlPanel.choiceInterfaceLayout.addWidget(self.controlPanel.maskComboBox, 0, 1)
 
         # Choose which objective is in use
-        self.controlPanel.objlensComboBox = QtGui.QComboBox()
+        self.controlPanel.objlensComboBox = QtWidgets.QComboBox()
         self.controlPanel.objlensComboBox.addItem("No objective")
         self.controlPanel.objlensComboBox.addItem("Oil")
         self.controlPanel.objlensComboBox.addItem("Glycerol")
-        self.controlPanel.choiceInterfaceLayout.addWidget(QtGui.QLabel('Select objective:'), 1, 0)
+        self.controlPanel.choiceInterfaceLayout.addWidget(QtWidgets.QLabel('Select objective:'), 1, 0)
         self.controlPanel.choiceInterfaceLayout.addWidget(self.controlPanel.objlensComboBox, 1, 1)
 
         # Phase mask moving buttons
@@ -352,29 +393,20 @@ class SLMWidget(Widget):
 
         for button in self.controlPanel.arrowButtons:
             button.setCheckable(False)
-            button.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                                 QtGui.QSizePolicy.Expanding)                   
+            button.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                 QtWidgets.QSizePolicy.Expanding)
             button.setFixedSize(self.controlPanel.upButton.sizeHint())
 
         # Interface to change the amount of displacement induced by the arrows
-        self.controlPanel.incrementInterface = QtGui.QWidget()
-        self.controlPanel.incrementInterfaceLayout = QtGui.QVBoxLayout()
+        self.controlPanel.incrementInterface = QtWidgets.QWidget()
+        self.controlPanel.incrementInterfaceLayout = QtWidgets.QVBoxLayout()
         self.controlPanel.incrementInterface.setLayout(self.controlPanel.incrementInterfaceLayout)
-        self.controlPanel.incrementlabel = QtGui.QLabel("Step (px)")
-        self.controlPanel.incrementSpinBox = QtGui.QSpinBox()
+        self.controlPanel.incrementlabel = QtWidgets.QLabel("Step (px)")
+        self.controlPanel.incrementSpinBox = QtWidgets.QSpinBox()
         self.controlPanel.incrementSpinBox.setRange(1, 50)
         self.controlPanel.incrementSpinBox.setValue(1)
         self.controlPanel.incrementInterfaceLayout.addWidget(self.controlPanel.incrementlabel)
         self.controlPanel.incrementInterfaceLayout.addWidget(self.controlPanel.incrementSpinBox)
-
-        # Interface to change the rotation angle of phase pattern
-        self.controlPanel.rotationInterface = QtGui.QWidget()
-        self.controlPanel.rotationInterfaceLayout = QtGui.QVBoxLayout()
-        self.controlPanel.rotationInterface.setLayout(self.controlPanel.rotationInterfaceLayout)
-        self.controlPanel.rotationLabel = QtGui.QLabel('Pattern angle (rad)')
-        self.controlPanel.rotationEdit = QtGui.QLineEdit('0')
-        self.controlPanel.rotationInterfaceLayout.addWidget(self.controlPanel.rotationLabel)
-        self.controlPanel.rotationInterfaceLayout.addWidget(self.controlPanel.rotationEdit)
 
         # Buttons for saving, loading, and controlling the various phase patterns
         self.controlPanel.saveButton = guitools.BetterPushButton("Save")
@@ -392,8 +424,8 @@ class SLMWidget(Widget):
         self.controlPanel.splitbullButton = guitools.BetterPushButton("Split pattern")
 
         # Defining layout
-        self.controlPanel.arrowsFrame = QtGui.QFrame()
-        self.controlPanel.arrowsLayout = QtGui.QGridLayout()
+        self.controlPanel.arrowsFrame = QtWidgets.QFrame()
+        self.controlPanel.arrowsLayout = QtWidgets.QGridLayout()
         self.controlPanel.arrowsFrame.setLayout(self.controlPanel.arrowsLayout)
 
         self.controlPanel.arrowsLayout.addWidget(self.controlPanel.upButton, 0, 1)
@@ -405,32 +437,46 @@ class SLMWidget(Widget):
         self.controlPanel.arrowsLayout.addWidget(self.controlPanel.loadButton, 0, 3)
         self.controlPanel.arrowsLayout.addWidget(self.controlPanel.saveButton, 1, 3)
 
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.donutButton, 3, 0)
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.tophatButton, 3, 1)
-
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.blackButton, 4, 0)
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.gaussianButton, 4, 1)
-
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.halfButton, 5, 0)
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.quadrantButton, 5, 1)
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.hexButton, 6, 0)
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.splitbullButton, 6, 1)
-        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.rotationInterface, 5, 2, 2, 1)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.donutButton, 3, 1)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.tophatButton, 3, 2)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.blackButton, 4, 1)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.gaussianButton, 4, 2)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.halfButton, 5, 1)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.quadrantButton, 5, 2)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.hexButton, 6, 1)
+        self.controlPanel.arrowsLayout.addWidget(self.controlPanel.splitbullButton, 6, 2)
 
         # Definition of the box layout:
-        self.controlPanel.boxLayout = QtGui.QVBoxLayout()
+        self.controlPanel.boxLayout = QtWidgets.QVBoxLayout()
         self.controlPanel.setLayout(self.controlPanel.boxLayout)
 
         self.controlPanel.boxLayout.addWidget(self.controlPanel.choiceInterface)
         self.controlPanel.boxLayout.addWidget(self.controlPanel.arrowsFrame)
 
-        self.grid = QtGui.QGridLayout()
+        self.grid = QtWidgets.QGridLayout()
         self.setLayout(self.grid)
 
-    def initControls(self):
         self.grid.addWidget(self.slmFrame, 0, 0, 1, 2)
-        self.grid.addWidget(self.paramtreeDockArea, 1, 0, 1, 1)
-        self.grid.addWidget(self.controlPanel, 1, 1, 1, 1)
+        self.grid.addWidget(self.paramtreeDockArea, 1, 0, 2, 1)
+        self.grid.addWidget(self.applyChangesButton, 3, 0, 1, 1)
+        self.grid.addLayout(self.slmDisplayLayout, 3, 1, 1, 1)
+        self.grid.addWidget(self.controlPanel, 1, 1, 2, 1)
+
+    def initSLMDisplay(self, monitor):
+        from view import SLMDisplay
+        self.slmDisplay = SLMDisplay.SLMDisplay(self, monitor)
+        self.slmDisplay.sigClosed.connect(lambda: self.sigSLMDisplayToggled.emit(False))
+        self.slmMonitorBox.setValue(monitor)
+
+    def updateSLMDisplay(self, imgArr):
+        self.slmDisplay.updateImage(imgArr)
+
+    def setSLMDisplayVisible(self, visible):
+        self.slmDisplay.setVisible(visible)
+        self.slmDisplayButton.setChecked(visible)
+
+    def setSLMDisplayMonitor(self, monitor):
+        self.slmDisplay.setMonitor(monitor, updateImage=True)
 
 
 class FocusLockWidget(Widget):

@@ -58,7 +58,8 @@ class SmartSTEDWidget(Widget):
         self.loadScanParametersButton = guitools.BetterPushButton('Load scan parameters')
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
-        self.visualizeOnlyCheck = QtGui.QCheckBox('Visualize only')
+        self.visualizeCheck = QtGui.QCheckBox('Visualize')
+        self.validateCheck = QtGui.QCheckBox('Validate')
         self.timelapseScanCheck = QtGui.QCheckBox('Timelapse scan')
 
         self.bin_thresh_label = QtGui.QLabel('Bin. threshold')
@@ -117,7 +118,8 @@ class SmartSTEDWidget(Widget):
         # add general buttons to grid
         self.grid.addWidget(self.initiateButton, currentRow, 0)
         self.grid.addWidget(self.endlessScanCheck, currentRow, 1)
-        self.grid.addWidget(self.visualizeOnlyCheck, currentRow, 2)
+        self.grid.addWidget(self.visualizeCheck, currentRow, 2)
+        self.grid.addWidget(self.validateCheck, currentRow, 3)
         self.grid.addWidget(self.loadScanParametersButton, currentRow, 4)
         self.grid.addWidget(self.recordBinaryMaskButton, currentRow, 5)
         

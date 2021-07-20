@@ -674,11 +674,12 @@ class RecorderController(WidgetController):
         args = list(args)
         detectorName = (args[0])
         image = args[1]
+        suffix = args[2]
         folder = self._widget.folderEdit.text()
         if not os.path.exists(folder):
             os.mkdir(folder)
         time.sleep(0.01)
-        name = os.path.join(folder, self.getFileName()) + '_snap'
+        name = os.path.join(folder, self.getFileName()) + '_snap_' + suffix
         savename = guitools.getUniqueName(name)
         attrs = self._commChannel.getCamAttrs()
         self._master.recordingManager.snapImage(detectorName, savename, image, attrs)

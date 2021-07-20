@@ -44,7 +44,7 @@ class CommunicationChannel(SignalInterface):
 
     snapImage = Signal(str)  # (detector)
 
-    snapImagePrev = Signal(str, np.ndarray)  # (detector, image)
+    snapImagePrev = Signal(str, np.ndarray, str)  # (detector, image, nameSuffix)
 
     moveZstage = Signal(float)  # (step)
 

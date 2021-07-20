@@ -92,23 +92,30 @@ class SmartSTEDController(WidgetController):
             "slowscan_x_center": 0,
             "slowscan_y_center": 0
         }
+        # initiate flags and params
         self.__running = False
+        self.__validating = False
         self.__busy = False
-        self.__testmode = False
+        self.__visualizeMode = False
+        self.__validateMode = False
         self.__bkg = None
-        self.__prevFrames = deque(maxlen=5)
+        self.__prevFrames = deque(maxlen=10)
+        self.__prevAnaFrames = deque(maxlen=10)
         self.__binary_mask = None
         self.__binary_stack = None
         self.__binary_frames = 10
+        self.__validationFrames = 0
         self.__frame = 0
 
     def initiate(self):
         if not self.__running:
             self.__param_vals = self.readParams()
 
-            # Check if test mode, in case launch help widget
-            self.__testmode = self._widget.visualizeOnlyCheck.isChecked()
-            if self.__testmode:
+            # Check if visualization mode, in case launch help widget
+            self.__visualizeMode = self._widget.visualizeCheck.isChecked()
+            # check if validation mode
+            self.__validateMode = self._widget.validateCheck.isChecked()
+            if self.__visualizeMode or self.__validateMode:
                 self.launchAnalysisHelpWidget()
 
             # Load coordinate transform pipeline of choice
@@ -137,24 +144,22 @@ class SmartSTEDController(WidgetController):
             self.__scatterPlot.hide()
             self._widget.initiateButton.setText('Initiate')
             self.__running = False
+            self.__validating = False
             self.__frame = 0
         
     def endScan(self):
         if self.timelapse:
-            self.__detLog[f"scan_end_frame{self.frame}"] = datetime.now().strftime('%Ss%fus')
+            self.__detLog[f"scan_end_frame{self.timelapse_frame}"] = datetime.now().strftime('%Ss%fus')
         else:
             self.__detLog[f"scan_end"] = datetime.now().strftime('%Ss%fus')
         self._commChannel.snapImage.emit(self.slowDetector)
         if self.timelapse:
-            if self.frame < self.frames_tot:
-                self.frame += 1
+            if self.timelapse_frame < self.timelapse_frames_tot:
+                self.timelapse_frame += 1
                 self.runSlowScan()
-            else:
-                self.endRecording()
-                self.continueFastModality()
-        else:
-            self.endRecording()
-            self.continueFastModality()
+                return
+        self.endRecording()
+        self.continueFastModality()
         self.__frame = 0
 
     def endRecording(self):
@@ -225,25 +230,47 @@ class SmartSTEDController(WidgetController):
 
             self.__busy = True
             
-            #t_pre = datetime.now()
             t_pre = millis()
-            if self.__testmode:
-                coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, self.__testmode, *self.__param_vals)
+            if self.__visualizeMode or self.__validateMode:
+                coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, (self.__visualizeMode or self.__validateMode), *self.__param_vals)
             else:
-                coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__testmode, *self.__param_vals)
-            #t_post = datetime.now()
+                coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, *self.__param_vals)
             t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
-            #self.time_curr_bef = round(t_pre.microsecond/1000)
-            #self.time_curr_aft = round(t_post.microsecond/1000)
-            #print(f'Time for pipeline: {round(t_post.microsecond/1000)-round(t_pre.microsecond/1000)} ms')
             print(f'Time for pipeline: {t_post-t_pre} ms')
 
             self.__busy = False
             if self.__frame > 5:
-                if self.__testmode:
+                if self.__visualizeMode:
                     self.updateScatter(coords_detected, clear=True)
                     self.setAnalysisHelpImg(img_ana)
+                elif self.__validateMode:
+                    self.updateScatter(coords_detected, clear=True)
+                    self.setAnalysisHelpImg(img_ana)
+                    if self.__validating:
+                        if self.__validationFrames > 5:
+                            self.saveValidationImages()
+                            self.pauseFastModality()
+                            self.endRecording()
+                            self.continueFastModality()
+                            self.__frame = 0
+                            self.__validating = False
+                        self.__validationFrames += 1
+                    elif coords_detected.size != 0:
+                        if np.size(coords_detected) > 2:
+                            coords_scan = coords_detected[0,:]
+                        else:
+                            coords_scan = coords_detected
+                        # save detected center coordinate in the log
+                        self.__detLog["fastscan_x_center"] = coords_scan[0]
+                        self.__detLog["fastscan_y_center"] = coords_scan[1]
+                        # save all detected coordinates in the log
+                        if np.size(coords_detected) > 2:
+                            for i in range(np.size(coords_detected,0)):
+                                self.__detLog[f"det_coord_x_{i}"] = coords_detected[i,0]
+                                self.__detLog[f"det_coord_y_{i}"] = coords_detected[i,1]
+                        self.__validating = True
+                        self.__validationFrames = 0
                 elif coords_detected.size != 0:
                     if np.size(coords_detected) > 2:
                         coords_scan = coords_detected[0,:]
@@ -251,6 +278,7 @@ class SmartSTEDController(WidgetController):
                         coords_scan = coords_detected
                     print(coords_scan)
                     self.pauseFastModality()
+
                     self.__detLog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
                     coords_center_scan = self.transform(coords_scan, self.__transformCoeffs)
                     self.__detLog["fastscan_x_center"] = coords_scan[0]
@@ -258,19 +286,43 @@ class SmartSTEDController(WidgetController):
                     self.__detLog["slowscan_x_center"] = coords_center_scan[0]
                     self.__detLog["slowscan_y_center"] = coords_center_scan[1]
                     self.__detLog["scan_initiate"] = datetime.now().strftime('%Ss%fus')
+                    # save all detected coordinates in the log
+                    if np.size(coords_detected) > 2:
+                        for i in range(np.size(coords_detected,2)):
+                            self.__detLog[f"det_coord_x_{i}"] = coords_detected[i,0]
+                            self.__detLog[f"det_coord_y_{i}"] = coords_detected[i,1]
+
                     self.timelapse = self._widget.timelapseScanCheck.isChecked()
                     if self.timelapse:
-                        self.frame = 0
-                        self.frames_tot = int(self._widget.timelapse_reps_edit.text())
+                        self.timelapse_frame = 0
+                        self.timelapse_frames_tot = int(self._widget.timelapse_reps_edit.text())
+
                     self.initiateSlowScan(position=coords_center_scan)
                     self.runSlowScan()
+
                     self.updateScatter(coords_detected, clear=True)
-                    for img in self.__prevFrames:
-                        self._commChannel.snapImagePrev.emit(self.fastDetector, img)
-                    self._commChannel.snapImagePrev.emit(self.fastDetector, im)
+
+                    self.__prevFrames.append(im)
+                    self.__prevAnaFrames.append(img_ana)
+                    self.saveValidationImages()
+                    return
             self.__bkg = im
             self.__prevFrames.append(im)
+            if self.__validateMode:
+                self.__prevAnaFrames.append(img_ana)
             self.__frame += 1
+
+    def saveValidationImages(self):
+        idx = 0
+        for img in self.__prevFrames:
+            self._commChannel.snapImagePrev.emit(self.fastDetector, img, f'raw{idx}')
+            idx += 1
+        idx = 0
+        for img in self.__prevAnaFrames:
+            self._commChannel.snapImagePrev.emit(self.fastDetector, img, f'ana{idx}')
+            idx += 1
+        self.__prevFrames.clear()
+        self.__prevAnaFrames.clear()
 
     def assignScanParameters(self, analogDict, digitalDict):
         self._analogParameterDict = analogDict
@@ -357,8 +409,8 @@ class SmartSTEDController(WidgetController):
 
     def runSlowScan(self):
         if self.timelapse:
-            print(f'Scan #{self.frame} in time lapse of {self.frames_tot} scans')
-            self.__detLog[f"scan_start_frame{self.frame}"] = datetime.now().strftime('%Ss%fus')
+            print(f'Scan #{self.timelapse_frame} in time lapse of {self.timelapse_frames_tot} scans')
+            self.__detLog[f"scan_start_frame{self.timelapse_frame}"] = datetime.now().strftime('%Ss%fus')
         else:
             self.__detLog[f"scan_start"] = datetime.now().strftime('%Ss%fus')
         self._master.nidaqManager.runScan(self.signalDic, self.scanInfoDict)
@@ -386,6 +438,7 @@ class SmartSTEDController(WidgetController):
         #C = np.array([-3.31703795,  3.57475083,  0.68279051])  # first order plane fit
         #params = np.array([px_size, dwell_time, 1])  # for use with first order plane fit
         #TODO: add these parameters to the .json configuration file somehow?
+        #TODO: include this in the scanning module instead? or there is no point to doing it there?
         C = np.array([-5.06873628, -80.6978355, 104.06976744, -7.12113356, 8.0065076, 0.68227188])  # second order plane fit
         params = np.array([px_size**2, dwell_time**2, px_size*dwell_time, px_size, dwell_time, 1])  # for use with second order plane fit
         shift_compensation = np.sum(params*C)

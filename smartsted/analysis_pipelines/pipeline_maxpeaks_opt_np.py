@@ -10,11 +10,9 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
         #img_ana = np.zeros(np.shape(img))
         img_ana = np.random.random(np.shape(img))*np.random.random()
     else:
-        #print(1)
         # subtract last img (noisier, but quicker)
         img_ana = np.subtract(img,bkg)
         
-        #print(2)
         # divide by last image to get percentual change in img
         img_div = bkg
         # replace noise with a very high value to avoid detecting noise
@@ -22,30 +20,23 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
         img_ana = np.divide(img_ana, img_div)
         img_ana = img_ana * binary_mask
         
-        #print(3)
         img_ana = ndi.filters.gaussian_filter(img_ana, smoothing_radius)  # Gaussian filter the image, to remove noise and so on, to get a better center estimate
 
-        #print(4)
     "Peak_local_max all-in-one as a combo of opencv and numpy"
     thresh_abs = thresh_abs * f_multiply
     size = np.int(2 * min_dist + 1)
     img_ana = np.clip(img_ana, a_min=0, a_max=None)
     img_ana = (img_ana * f_multiply).astype('uint16')
-    #print('')
     #print(np.max(img_ana))
     #print(np.min(img_ana))
     #print(np.mean(img_ana))
-    #print('')
-    #print(5)
     # get filter structuring element
     footprint = cv2.getStructuringElement(cv2.MORPH_RECT, ksize=[size,size])
     # maximum filter (dilation + equal)
     image_max = cv2.dilate(img_ana, kernel=footprint)
-    #print(6)
     #return image, image_max
     mask = np.equal(img_ana,image_max)
     mask &= np.greater(img_ana, thresh_abs)
-    #print(7)
     
     # get coordinates of peaks
     coordinates = np.nonzero(mask)
@@ -54,7 +45,6 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
     idx_maxsort = np.argsort(-intensities)
     coordinates = tuple(arr for arr in coordinates)
     coordinates = np.transpose(coordinates)[idx_maxsort]
-    #print(8)
 
     if ensure_spacing==1:
         output = coordinates
@@ -86,16 +76,13 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
                         # candidates.remove(keep)
                         rejected_peaks_indices.update(candidates)
                 
-                #print(10)
                 # Remove the peaks that are too close to each other
                 output = np.delete(coordinates, tuple(rejected_peaks_indices), axis=0)
-                #print(11)
 
         coordinates = output
     num_peaks = np.int(num_peaks)
     if len(coordinates) > num_peaks:
         coordinates = coordinates[:num_peaks]
-    #print(12)
     coordinates = np.flip(coordinates,axis=1)
     if testmode:
         return coordinates, img_ana

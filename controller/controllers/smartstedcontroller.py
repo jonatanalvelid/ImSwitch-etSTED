@@ -163,18 +163,29 @@ class SmartSTEDController(WidgetController):
         self.__frame = 0
 
     def endRecording(self):
+        self.__detLog["pipeline"] = self.getPipelineName()
+        self.logPipelineParamVals()
         # save log file with temporal info of trigger event
         filename = datetime.utcnow().strftime('%Hh%Mm%Ss%fus')
         name = os.path.join(self.__saveFolder, filename) + '_log'
         savename = guitools.getUniqueName(name)
-        timelog = [f'{key}: {self.__detLog[key]}' for key in self.__detLog]
+        log = [f'{key}: {self.__detLog[key]}' for key in self.__detLog]
         with open(f'{savename}.txt', 'w') as f:
-            [f.write(f'{st}\n') for st in timelog]
+            [f.write(f'{st}\n') for st in log]
         self.resetDetLog()
     
+    def logPipelineParamVals(self):
+        param_names = list()
+        for pipeline_param_name, _ in self.__pipeline_params.items():
+            if pipeline_param_name not in ['img', 'bkg', 'binary_mask', 'testmode']:
+                param_names.append(pipeline_param_name)      
+        for name, val in zip(param_names, self.__param_vals):
+            self.__detLog[f'{name}'] = val
+
     def resetDetLog(self):
         self.__detLog = dict()
         self.__detLog = {
+            "pipeline": "",
             "pipeline_start": "",
             "pipeline_end": "",
             "coord_transf_start": "",
@@ -182,7 +193,7 @@ class SmartSTEDController(WidgetController):
             "fastscan_y_center": 0,
             "slowscan_x_center": 0,
             "slowscan_y_center": 0
-        }        
+        }
 
     def pauseFastModality(self):
         if self.__running:
@@ -210,14 +221,17 @@ class SmartSTEDController(WidgetController):
             self.__running = False
             self.__param_vals = list()
 
-    def loadPipeline(self):
+    def getPipelineName(self):
         pipelineidx = self._widget.analysisPipelinePar.currentIndex()
         pipelinename = self._widget.analysisPipelines[pipelineidx]
-        
-        self.pipeline = getattr(importlib.import_module(f'smartsted.analysis_pipelines.{pipelinename}'), f'{pipelinename}')
-        pipelineparams = signature(self.pipeline).parameters
+        return pipelinename
 
-        self._widget.initParamFields(pipelineparams)
+    def loadPipeline(self):
+        pipelinename = self.getPipelineName()
+        self.pipeline = getattr(importlib.import_module(f'smartsted.analysis_pipelines.{pipelinename}'), f'{pipelinename}')
+        self.__pipeline_params = signature(self.pipeline).parameters
+
+        self._widget.initParamFields(self.__pipeline_params)
 
     def loadTransform(self):
         transformidx = self._widget.transformPipelinePar.currentIndex()
@@ -249,7 +263,7 @@ class SmartSTEDController(WidgetController):
                     self.setAnalysisHelpImg(img_ana)
                     if self.__validating:
                         if self.__validationFrames > 5:
-                            self.saveValidationImages()
+                            self.saveValidationImages(prev=True, prevAna=True)
                             self.pauseFastModality()
                             self.endRecording()
                             self.continueFastModality()
@@ -288,7 +302,7 @@ class SmartSTEDController(WidgetController):
                     self.__detLog["scan_initiate"] = datetime.now().strftime('%Ss%fus')
                     # save all detected coordinates in the log
                     if np.size(coords_detected) > 2:
-                        for i in range(np.size(coords_detected,2)):
+                        for i in range(np.size(coords_detected,0)):
                             self.__detLog[f"det_coord_x_{i}"] = coords_detected[i,0]
                             self.__detLog[f"det_coord_y_{i}"] = coords_detected[i,1]
 
@@ -303,8 +317,7 @@ class SmartSTEDController(WidgetController):
                     self.updateScatter(coords_detected, clear=True)
 
                     self.__prevFrames.append(im)
-                    self.__prevAnaFrames.append(img_ana)
-                    self.saveValidationImages()
+                    self.saveValidationImages(prev=True, prevAna=False)
                     return
             self.__bkg = im
             self.__prevFrames.append(im)
@@ -312,17 +325,19 @@ class SmartSTEDController(WidgetController):
                 self.__prevAnaFrames.append(img_ana)
             self.__frame += 1
 
-    def saveValidationImages(self):
-        idx = 0
-        for img in self.__prevFrames:
-            self._commChannel.snapImagePrev.emit(self.fastDetector, img, f'raw{idx}')
-            idx += 1
-        idx = 0
-        for img in self.__prevAnaFrames:
-            self._commChannel.snapImagePrev.emit(self.fastDetector, img, f'ana{idx}')
-            idx += 1
-        self.__prevFrames.clear()
-        self.__prevAnaFrames.clear()
+    def saveValidationImages(self, prev=True, prevAna=True):
+        if prev:
+            idx = 0
+            for img in self.__prevFrames:
+                self._commChannel.snapImagePrev.emit(self.fastDetector, img, f'raw{idx}')
+                idx += 1
+            self.__prevFrames.clear()
+        if prevAna:
+            idx = 0
+            for img in self.__prevAnaFrames:
+                self._commChannel.snapImagePrev.emit(self.fastDetector, img, f'ana{idx}')
+                idx += 1
+            self.__prevAnaFrames.clear()
 
     def assignScanParameters(self, analogDict, digitalDict):
         self._analogParameterDict = analogDict

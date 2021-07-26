@@ -1,6 +1,6 @@
 {
     "detectors": {
-        "APDred": {
+        "APDgreen": {
             "analogChannel": null,
             "digitalLine": null,
             "managerName": "APDManager",
@@ -248,7 +248,7 @@
     "focusLock": null,
     "smartSTED": {
         "fastDetector": "smartSTEDCamera",
-        "slowDetector": "APDred",
+        "slowDetector": "APDgreen",
         "fastLaser": "488"
     },
     "designers": {

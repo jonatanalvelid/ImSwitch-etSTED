@@ -289,7 +289,7 @@ class SmartSTEDController(WidgetController):
                     if np.size(coords_detected) > 2:
                         coords_scan = coords_detected[0,:]
                     else:
-                        coords_scan = coords_detected
+                        coords_scan = coords_detected[0]
                     print(coords_scan)
                     self.pauseFastModality()
 

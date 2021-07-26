@@ -79,6 +79,7 @@ class NidaqManager(SignalInterface):
                                                                    initial_count=0,
                                                                    edge=nidaqmx.constants.Edge.RISING,
                                                                    count_direction=nidaqmx.constants.CountDirection.COUNT_UP)
+        print(f"task: name:{name}, terminal: {terminal}")
         citaskchannel.ci_count_edges_term = terminal
         # not sure if below is needed/what is standard/if I should use DMA (seems to be preferred) or INTERRUPT (as in Imspector, more load on CPU)
         citaskchannel.ci_data_xfer_mech = nidaqmx.constants.DataTransferActiveTransferMode.DMA

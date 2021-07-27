@@ -77,6 +77,7 @@ class SmartSTEDController(WidgetController):
         self._widget.coordTransfCalibButton.clicked.connect(self.__coordTransformHelper.calibrationLaunch)
         self._widget.recordBinaryMaskButton.clicked.connect(self.initiateBinaryMask)
         self._widget.loadScanParametersButton.clicked.connect(self.setScanParameters)
+        self._widget.setUpdatePeriodButton.clicked.connect(self.setFastUpdatePeriod)
         self._commChannel.sendScanParameters.connect(lambda analogParams, digitalParams: self.assignScanParameters(analogParams, digitalParams))
 
         # Create scatter plot item for sending to the viewbox while analysis is running
@@ -106,6 +107,8 @@ class SmartSTEDController(WidgetController):
         self.__binary_frames = 10
         self.__validationFrames = 0
         self.__frame = 0
+
+        self.t_call = 0
 
     def initiate(self):
         if not self.__running:
@@ -195,12 +198,16 @@ class SmartSTEDController(WidgetController):
             "slowscan_y_center": 0
         }
 
+    def setFastUpdatePeriod(self):
+        updatePeriod = int(self._widget.update_period_edit.text())  # update period in ms
+        self._master.detectorsManager.setUpdatePeriod(updatePeriod)
+
     def pauseFastModality(self):
         if self.__running:
             self._commChannel.updateImage.disconnect(self.runPipeline)
             #self._commChannel.toggleLiveview.emit(False)
             #self._widget.initiateButton.setText('Paused')
-            self._master.lasersManager.execOn(self.fastLaser, lambda l: l.setEnabled(False))
+            ###self._master.lasersManager.execOn(self.fastLaser, lambda l: l.setEnabled(False))
             #self._widget.initiateButton.setEnabled(False)
             self.__running = False
         
@@ -240,18 +247,23 @@ class SmartSTEDController(WidgetController):
         
     def runPipeline(self, im, init):
         if not self.__busy:
+            t_sincelastcall = millis() - self.t_call
+            #print(f'Time since last runPipeline call: {t_sincelastcall}')
+            self.t_call = millis()
+
+            self.__detLog["pipeline_rep_period"] = str(t_sincelastcall)
             self.__detLog["pipeline_start"] = datetime.now().strftime('%Ss%fus')
 
             self.__busy = True
             
-            t_pre = millis()
+            #t_pre = millis()
             if self.__visualizeMode or self.__validateMode:
                 coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, (self.__visualizeMode or self.__validateMode), *self.__param_vals)
             else:
                 coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, *self.__param_vals)
-            t_post = millis()
+            #t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
-            print(f'Time for pipeline: {t_post-t_pre} ms')
+            #print(f'Time for pipeline: {t_post-t_pre} ms')
 
             self.__busy = False
             if self.__frame > 5:
@@ -275,6 +287,7 @@ class SmartSTEDController(WidgetController):
                             coords_scan = coords_detected[0,:]
                         else:
                             coords_scan = coords_detected
+                        #print(coords_scan)
                         # save detected center coordinate in the log
                         self.__detLog["fastscan_x_center"] = coords_scan[0]
                         self.__detLog["fastscan_y_center"] = coords_scan[1]
@@ -290,8 +303,10 @@ class SmartSTEDController(WidgetController):
                         coords_scan = coords_detected[0,:]
                     else:
                         coords_scan = coords_detected[0]
-                    print(coords_scan)
+                    #print(coords_scan)
+                    self.__detLog["prepause"] = datetime.now().strftime('%Ss%fus')
                     self.pauseFastModality()
+                    self.__detLog["postpause"] = datetime.now().strftime('%Ss%fus')
 
                     self.__detLog["coord_transf_start"] = datetime.now().strftime('%Ss%fus')
                     coords_center_scan = self.transform(coords_scan, self.__transformCoeffs)

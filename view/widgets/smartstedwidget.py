@@ -56,6 +56,7 @@ class SmartSTEDWidget(Widget):
         self.coordTransfCalibButton = guitools.BetterPushButton('Transform calibration')
         self.recordBinaryMaskButton = guitools.BetterPushButton('Record binary mask')
         self.loadScanParametersButton = guitools.BetterPushButton('Load scan parameters')
+        self.setUpdatePeriodButton = guitools.BetterPushButton('Set update period')
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
         self.visualizeCheck = QtGui.QCheckBox('Visualize')
@@ -74,6 +75,9 @@ class SmartSTEDWidget(Widget):
         self.throw_delay_label = QtGui.QLabel('Throw delay (us)')
         self.throw_delay_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
         self.throw_delay_edit = QtGui.QLineEdit(str(100))
+        self.update_period_label = QtGui.QLabel('Update period (ms)')
+        self.update_period_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignBottom)
+        self.update_period_edit = QtGui.QLineEdit(str(500))
 
         #self.im_param_label = QtGui.QLabel('ROI parameters')
         #self.im_param_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom)
@@ -148,6 +152,10 @@ class SmartSTEDWidget(Widget):
         self.grid.addWidget(self.analysisPipelinePar, currentRow, 1)
         self.grid.addWidget(self.transformPipelinePar, currentRow, 2)
         self.grid.addWidget(self.coordTransfCalibButton, currentRow, 3)
+        self.grid.addWidget(self.setUpdatePeriodButton, currentRow, 5)
+        self.grid.addWidget(self.update_period_label, currentRow+1, 4)
+        self.grid.addWidget(self.update_period_edit, currentRow+1, 5)
+
 
     def initParamFields(self, parameters: dict):
         # remove previous parameter fields for the previously loaded pipeline

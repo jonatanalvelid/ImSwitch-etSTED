@@ -691,7 +691,7 @@ class HamamatsuCamera:
         self.checkStatus(dcam.dcam_idle(self.camera_handle),
                          "dcam_idle")
 
-        print("max camera backlog was", self.max_backlog, "of", self.number_image_buffers)
+        #print("max camera backlog was", self.max_backlog, "of", self.number_image_buffers)
         self.max_backlog = 0
 
         # Free image buffers.
@@ -792,7 +792,7 @@ class HamamatsuCameraMR(HamamatsuCamera):
     #
     def startAcquisition(self):
         self.captureSetup()
-        print(self.frame_bytes)
+        #print(self.frame_bytes)
         #
         # Allocate new image buffers if necessary.
         # Allocate as many frames as can fit in 2GB of memory.
@@ -802,7 +802,7 @@ class HamamatsuCameraMR(HamamatsuCamera):
         if (self.old_frame_bytes != self.frame_bytes):
 
             n_buffers = 2*int((4 * 1024 * 1024 * 1024)/(2*self.frame_bytes)) #Even number of frames
-            print('Number of frames to buffer: ', n_buffers)
+            #print('Number of frames to buffer: ', n_buffers)
             self.number_image_buffers = n_buffers
 
             # Allocate new image buffers.
@@ -817,7 +817,7 @@ class HamamatsuCameraMR(HamamatsuCamera):
                 self.hcam_data.append(hc_data)
 
             self.old_frame_bytes = self.frame_bytes
-            print('Finished buffering frames')
+            #print('Finished buffering frames')
         # Attach image buffers.
         #
         # We need to attach & release for each acquisition otherwise
@@ -845,7 +845,7 @@ class HamamatsuCameraMR(HamamatsuCamera):
             self.checkStatus(dcam.dcam_releasebuffer(self.camera_handle),
                              "dcam_releasebuffer")
 
-        print("max camera backlog was:", self.max_backlog)
+        #print("max camera backlog was:", self.max_backlog)
         self.max_backlog = 0
 
 

@@ -248,7 +248,7 @@ class SmartSTEDController(WidgetController):
     def runPipeline(self, im, init):
         if not self.__busy:
             t_sincelastcall = millis() - self.t_call
-            #print(f'Time since last runPipeline call: {t_sincelastcall}')
+            print(f'Time since last runPipeline call: {t_sincelastcall}')
             self.t_call = millis()
 
             self.__detLog["pipeline_rep_period"] = str(t_sincelastcall)
@@ -256,14 +256,14 @@ class SmartSTEDController(WidgetController):
 
             self.__busy = True
             
-            #t_pre = millis()
+            t_pre = millis()
             if self.__visualizeMode or self.__validateMode:
                 coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, (self.__visualizeMode or self.__validateMode), *self.__param_vals)
             else:
                 coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, *self.__param_vals)
-            #t_post = millis()
+            t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
-            #print(f'Time for pipeline: {t_post-t_pre} ms')
+            print(f'Time for pipeline: {t_post-t_pre} ms')
 
             self.__busy = False
             if self.__frame > 5:
@@ -303,7 +303,7 @@ class SmartSTEDController(WidgetController):
                         coords_scan = coords_detected[0,:]
                     else:
                         coords_scan = coords_detected[0]
-                    #print(coords_scan)
+                    print(coords_scan)
                     self.__detLog["prepause"] = datetime.now().strftime('%Ss%fus')
                     self.pauseFastModality()
                     self.__detLog["postpause"] = datetime.now().strftime('%Ss%fus')
@@ -339,6 +339,9 @@ class SmartSTEDController(WidgetController):
             if self.__validateMode:
                 self.__prevAnaFrames.append(img_ana)
             self.__frame += 1
+
+            t_finalizerunpipe = millis() - self.t_call
+            print(f'Time between runPipeline call and finish: {t_finalizerunpipe}')
 
     def saveValidationImages(self, prev=True, prevAna=True):
         if prev:

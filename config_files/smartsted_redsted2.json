@@ -14,24 +14,6 @@
         "smartSTEDCamera": {
             "analogChannel": null,
             "digitalLine": null,
-            "managerName": "TISManager",
-            "managerProperties": {
-                "purpose": "acquisition",
-                "cameraListIndex": 0,
-                "tis": {
-                    "exposure": 10,
-                    "gain": 1,
-                    "brightness": 1,
-                    "image_width": 2048,
-                    "image_height": 2048,
-                    "flipud": true,
-                    "fliplr": true
-                }
-            }
-        },
-        "HAMCAM": {
-            "analogChannel": null,
-            "digitalLine": null,
             "managerName": "HamamatsuManager",
             "managerProperties": {
                 "purpose": "acquisition",

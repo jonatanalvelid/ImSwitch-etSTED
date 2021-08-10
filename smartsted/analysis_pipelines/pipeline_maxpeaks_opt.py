@@ -11,7 +11,10 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_d
         img_ana = cp.zeros(cp.shape(cp.array(img)))
     else:
         img = cp.array(img)
-        bkg = cp.array(bkg)
+        if np.shape(img) != np.shape(bkg):
+            bkg = cp.zeros(cp.shape(img))
+        else:
+            bkg = cp.array(bkg)
         # subtract last img (noisier, but quicker)
         img_ana = cp.subtract(img,bkg)
         
@@ -26,7 +29,7 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_d
 
     "Peak_local_max all-in-one as a combo of opencv and cupy"
     thresh_abs = thresh_abs * f_multiply
-    size = 2 * min_dist + 1
+    size = int(2 * min_dist + 1)
     img_ana = (img_ana * f_multiply).astype('uint16')
     # get filter structuring element
     footprint = cv2.getStructuringElement(cv2.MORPH_RECT, ksize=[size,size])
@@ -80,7 +83,9 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_d
     if len(coordinates) > num_peaks:
         coordinates = coordinates[:num_peaks]
 
+    coordinates = coordinates.get()
     if testmode:
+        img_ana = img_ana.get()
         return coordinates, img_ana
     else:
         return coordinates

@@ -25,7 +25,7 @@ ic_ic.init_library()
 cam_names = ic_ic.get_unique_device_names()
 print(cam_names)
 model = cam_names[0]
-model2 = cam_names[1]
+#model2 = cam_names[1]
 cam = ic_ic.get_device(model)
 cam.open()
 #cam2 = ic_ic.get_device(model2)

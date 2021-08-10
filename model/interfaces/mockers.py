@@ -489,6 +489,7 @@ class MockCameraTIS:
         self.gain = 1
         self.brightness = 1
         self.model = 'mock'
+        self.flipimage = (False, False)
 
     def grabFrame(self, **kwargs):
         imgsize = (2048, 2448)
@@ -513,7 +514,7 @@ class MockCameraTIS:
         return property_value
 
     def getPropertyValue(self, property_name):
-        return [self.properties[property_name]]
+        return self.properties[property_name]
 
     def show_dialog(self):
         pass
@@ -522,6 +523,9 @@ class MockCameraTIS:
         pass
 
     def stop_live(self):
+        pass
+
+    def suspend_live(self):
         pass
 
     def setROI(self, *args, **kwargs):

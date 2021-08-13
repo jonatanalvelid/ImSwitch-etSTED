@@ -45,7 +45,7 @@ class CameraTIS:
         #self.cam.frame_filter_set_parameter(self.roi_filter, 'Width'.encode('utf-8'), 1000)
 
     def setROI(self, hpos, vpos, hsize, vsize):
-        hsize = max(hsize, 256)  # minimum ROI size
+        hsize = max(hsize, 100)  # minimum ROI size
         vsize = max(vsize, 24)  # minimum ROI size
         #print(f'{self.model}: setROI started with {hsize}x{vsize} at {hpos},{vpos}.')
         self.cam.frame_filter_set_parameter(self.roi_filter, 'Top', vpos)

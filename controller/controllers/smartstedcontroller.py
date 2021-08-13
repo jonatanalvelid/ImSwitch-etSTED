@@ -105,6 +105,7 @@ class SmartSTEDController(WidgetController):
         self.__binary_mask = None
         self.__binary_stack = None
         self.__binary_frames = 10
+        self.__init_frames = 1
         self.__validationFrames = 0
         self.__frame = 0
 
@@ -199,15 +200,15 @@ class SmartSTEDController(WidgetController):
         }
 
     def setFastUpdatePeriod(self):
-        updatePeriod = int(self._widget.update_period_edit.text())  # update period in ms
-        self._master.detectorsManager.setUpdatePeriod(updatePeriod)
+        self.__updatePeriod = int(self._widget.update_period_edit.text())  # update period in ms
+        self._master.detectorsManager.setUpdatePeriod(self.__updatePeriod)
 
     def pauseFastModality(self):
         if self.__running:
             self._commChannel.updateImage.disconnect(self.runPipeline)
             #self._commChannel.toggleLiveview.emit(False)
             #self._widget.initiateButton.setText('Paused')
-            ###self._master.lasersManager.execOn(self.fastLaser, lambda l: l.setEnabled(False))
+            self._master.lasersManager.execOn(self.fastLaser, lambda l: l.setEnabled(False))
             #self._widget.initiateButton.setEnabled(False)
             self.__running = False
         
@@ -248,7 +249,7 @@ class SmartSTEDController(WidgetController):
     def runPipeline(self, im, init):
         if not self.__busy:
             t_sincelastcall = millis() - self.t_call
-            print(f'Time since last runPipeline call: {t_sincelastcall}')
+            #print(f'Time since last runPipeline call: {t_sincelastcall} ms')
             self.t_call = millis()
 
             self.__detLog["pipeline_rep_period"] = str(t_sincelastcall)
@@ -263,10 +264,10 @@ class SmartSTEDController(WidgetController):
                 coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, *self.__param_vals)
             t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
-            print(f'Time for pipeline: {t_post-t_pre} ms')
+            #print(f'Time for pipeline: {t_post-t_pre} ms')
 
             self.__busy = False
-            if self.__frame > 5:
+            if self.__frame > self.__init_frames:
                 if self.__visualizeMode:
                     self.updateScatter(coords_detected, clear=True)
                     self.setAnalysisHelpImg(img_ana)
@@ -286,7 +287,7 @@ class SmartSTEDController(WidgetController):
                         if np.size(coords_detected) > 2:
                             coords_scan = coords_detected[0,:]
                         else:
-                            coords_scan = coords_detected
+                            coords_scan = coords_detected[0]
                         #print(coords_scan)
                         # save detected center coordinate in the log
                         self.__detLog["fastscan_x_center"] = coords_scan[0]
@@ -341,7 +342,7 @@ class SmartSTEDController(WidgetController):
             self.__frame += 1
 
             t_finalizerunpipe = millis() - self.t_call
-            print(f'Time between runPipeline call and finish: {t_finalizerunpipe}')
+            print(f'Time between runPipeline call and finish: {t_finalizerunpipe} ms')
 
     def saveValidationImages(self, prev=True, prevAna=True):
         if prev:
@@ -395,11 +396,15 @@ class SmartSTEDController(WidgetController):
 
     def setAnalysisHelpImg(self, img_ana):
         self._widget.analysisHelpWidget.img.setOnlyRenderVisible(True, render=False)
-        self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=True, autoDownsample=False)
-        infotext = f'Min int.: {np.min(img_ana)}, max int.: {np.max(img_ana)/100} (counts)'
+        if self.__frame < self.__init_frames + 3:
+            self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=True, autoDownsample=False)
+        else:
+            self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=False, autoDownsample=False)
+        infotext = f'Min: {np.min(img_ana)}, max: {np.max(img_ana/10000)} (rel. change)'
         self._widget.analysisHelpWidget.info_label.setText(infotext)
         img_shape = np.shape(img_ana)
-        guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])
+        if self.__frame < self.__init_frames + 1:
+            guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])
         self._widget.analysisHelpWidget.img.render()
 
     def updateScatter(self, coords, clear=True):
@@ -561,6 +566,7 @@ class SmartSTEDCoordTransformHelper():
         with h5py.File(img_filename, "r") as f:
             img_key = list(f.keys())[0]
             pixelsize = f.attrs['element_size_um'][1]
+            print(pixelsize)
             img_data = np.array(f[img_key])
             imgsize = pixelsize*np.size(img_data,0)
         # view data in corresponding viewbox

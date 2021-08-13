@@ -8,6 +8,7 @@ Created on Tue Apr  7 16:37:09 2020
 from .DetectorManager import (
     DetectorManager, DetectorNumberParameter, DetectorListParameter
 )
+import numpy as np
 
 
 class HamamatsuManager(DetectorManager):
@@ -44,7 +45,7 @@ class HamamatsuManager(DetectorManager):
                                                              'External "start-trigger"',
                                                              'External "frame-trigger"'],
                                                     editable=True),
-            'Camera pixel size': DetectorNumberParameter(group='Miscellaneous', value=0.1,
+            'Camera pixel size': DetectorNumberParameter(group='Miscellaneous', value=1,
                                                          valueUnits='µm', editable=True)
         }
 
@@ -58,7 +59,20 @@ class HamamatsuManager(DetectorManager):
         return [1, umxpx, umxpx]
 
     def getLatestFrame(self):
-        return self._camera.getLast()
+        #dt = datetime.now()
+        #time_curr_bef = round(dt.microsecond/1000)
+        frame = self._camera.getLast()
+        #dt = datetime.now()
+        #time_curr_mid = round(dt.microsecond/1000)
+        if self._camera.flipimage[0]:
+            frame = np.fliplr(frame)
+        if self._camera.flipimage[1]:
+            frame = np.flipud(frame)
+        #dt = datetime.now()
+        #time_curr_aft = round(dt.microsecond/1000)
+        #print(f'Time for grab: {time_curr_mid-time_curr_bef} ms')
+        #print(f'Time for flip: {time_curr_aft-time_curr_mid} ms')
+        return frame
 
     def getChunk(self):
         return self._camera.getFrames()
@@ -87,7 +101,7 @@ class HamamatsuManager(DetectorManager):
         # This should be the only place where self.frameStart is changed
         self._frameStart = (vpos, hpos)
         # Only place self.shapes is changed
-        self._shape = (vsize, hsize)
+        self.shape = (vsize, hsize)
 
     def setBinning(self, binning):
         super().setBinning(binning)

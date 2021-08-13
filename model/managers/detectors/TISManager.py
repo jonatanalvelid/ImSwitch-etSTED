@@ -115,6 +115,7 @@ class TISManager(DetectorManager):
         return tuple([1, 1, 1])
 
     def crop(self, hpos, vpos, hsize, vsize):
+        #print(f"cropping! {hpos},{vpos},{hsize},{vsize}")
         def cropAction():
             #print(f'{self._camera.model}: crop frame to {hsize}x{vsize} at {hpos},{vpos}.')
             self._camera.setROI(hpos, vpos, hsize, vsize)

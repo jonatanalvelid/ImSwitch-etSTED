@@ -28,7 +28,9 @@ class FocusLockController(WidgetController):
         self.camera = self._setupInfo.focusLock.camera
         self.positioner = self._setupInfo.focusLock.positioner
         self.updateFreq = self._setupInfo.focusLock.updateFreq
-        self.cropFrame = (self._setupInfo.focusLock.frameCrop_left, self._setupInfo.focusLock.frameCrop_right, self._setupInfo.focusLock.frameCrop_top, self._setupInfo.focusLock.frameCrop_bottom)
+        self.cropFrame = [self._setupInfo.focusLock.frameCrop_left, self._setupInfo.focusLock.frameCrop_top, self._setupInfo.focusLock.frameCrop_right - self._setupInfo.focusLock.frameCrop_left, self._setupInfo.focusLock.frameCrop_bottom-self._setupInfo.focusLock.frameCrop_top]
+        self._master.detectorsManager.execOn(self.camera, lambda c: c.crop(*self.cropFrame))
+        self._master.detectorsManager.execOn(self.camera, lambda c: c.startAcquisition())
 
         # Connect FocusLockWidget buttons
         self._widget.kpEdit.textChanged.connect(self.unlockFocus)
@@ -111,7 +113,9 @@ class FocusLockController(WidgetController):
     def update(self):
         #1 Grab camera frame through cameraHelper and crop
         img = self._master.detectorsManager.execOn(self.camera, lambda c: c.getLatestFrame())
-        img = img[self.cropFrame[0]:self.cropFrame[1],self.cropFrame[2]:self.cropFrame[3]]
+        img = np.flip(np.swapaxes(img, 0, 1), 1)
+        #print(np.shape(img))
+        #img = img[self.cropFrame[0]:self.cropFrame[1],self.cropFrame[2]:self.cropFrame[3]]
         #2 Pass camera frame and get back focusSignalPosition from ProcessDataThread
         self.setPointSignal = self.__processDataThread.update(img, self.twoFociVar)
         #3 Update PI with the new setPointSignal and get back the distance to move, send to
@@ -212,9 +216,7 @@ class ProcessDataThread(QtCore.QThread):
     def update(self, img, twoFociVar):
         # Update the focus signal
         imagearray = img
-        #imagearray = imagearray[0:1024,730:830]
         #imagearray = np.swapaxes(imagearray,0,1)      # Swap matrix axes, after having turned the camera 90deg
-        # imagearraygf = imagearray
         imagearraygf = ndi.filters.gaussian_filter(imagearray,7)     # Gaussian filter the image, to remove noise and so on, to get a better center estimate
 
         if twoFociVar:

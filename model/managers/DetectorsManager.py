@@ -89,11 +89,13 @@ class DetectorsManager(MultiManager, SignalInterface):
                     for managedDeviceName, subManager in self._subManagers.items()
                             if self.__detectorInfos[managedDeviceName].managerProperties['purpose'] == purpose}
         else:
+            #for managedDeviceName in self._subManagers.items():
+            #    print(managedDeviceName)
             return {managedDeviceName: func(subManager)
                     for managedDeviceName, subManager in self._subManagers.items()}
 
     def startAcquisition(self):
-        self.execOnAll(lambda c: c.startAcquisition())
+        self.execOnAll(lambda c: c.startAcquisition(), purpose='acquisition')
         self.acquisitionStarted.emit()
         sleep(0.1)
         self._thread.start()
@@ -101,7 +103,7 @@ class DetectorsManager(MultiManager, SignalInterface):
     def stopAcquisition(self):
         self._thread.quit()
         self._thread.wait()
-        self.execOnAll(lambda c: c.stopAcquisition())
+        self.execOnAll(lambda c: c.stopAcquisition(), purpose='acquisition')
         self.acquisitionStopped.emit()
 
 
@@ -112,10 +114,10 @@ class LVWorker(Worker):
         self._updatePeriod = updatePeriod  # update period in ms
 
     def run(self):
-        self._detectorsManager.execOnAll(lambda c: c.updateLatestFrame(False))
+        self._detectorsManager.execOnAll(lambda c: c.updateLatestFrame(False), purpose='acquisition')
         self.vtimer = Timer()
         self.vtimer.timeout.connect(
-            lambda: self._detectorsManager.execOnAll(lambda c: c.updateLatestFrame(True))
+            lambda: self._detectorsManager.execOnAll(lambda c: c.updateLatestFrame(True), purpose='acquisition')
         )
         self.vtimer.start(self._updatePeriod)
     

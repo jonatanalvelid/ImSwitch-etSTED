@@ -27,13 +27,46 @@
                     "trigger_source": 1,
                     "subarray_hpos": 0,
                     "subarray_vpos": 0,
-                    "subarray_hsize": 2304,
-                    "subarray_vsize": 2304
+                    "subarray_hsize": 2048,
+                    "subarray_vsize": 2048,
+                    "flipud": false,
+                    "fliplr": true
                 }
             }
+        },
+        "FocusLockCamera": {
+          "analogChannel": null,
+          "digitalLine": null,
+          "managerName": "TISManager",
+          "managerProperties": {
+            "purpose": "focusLock",
+            "cameraListIndex": 0,
+            "tis": {
+              "exposure": 0,
+              "gain": 0,
+              "brightness": 0,
+              "image_width": 1280,
+              "image_height": 1024
+            }
+          }
         }
     },
     "lasers": {
+        "488WF": {
+            "analogChannel": null,
+            "digitalLine": 0,
+            "managerName": "CoboltLaserManager",
+            "managerProperties": {
+                "digitalDriver": "cobolt.cobolt0601.Cobolt0601_f2",
+                "digitalPorts": [
+                    "ASRL8::INSTR"
+                ]
+            },
+            "wavelength": 488,
+            "valueRangeMin": 0,
+            "valueRangeMax": 200,
+            "valueRangeStep": 1
+        },
         "561": {
             "analogChannel": null,
             "digitalLine": 1,
@@ -213,6 +246,22 @@
                 "dsrdtr": "false",
                 "xonxoff": "false"
             }
+        },
+        "leicastand": {
+            "managerName": "RS232Manager",
+            "managerProperties": {
+                "port": "ASRL9::INSTR",
+                "encoding": "ascii",
+                "recv_termination": "\r",
+                "send_termination": "\r",
+                "baudrate": 19200,
+                "bytesize": 8,
+                "parity": "none",
+                "stopbits": 1,
+                "rtscts": "false",
+                "dsrdtr": "false",
+                "xonxoff": "false"
+            }
         }
     },
     "scan": {
@@ -233,11 +282,19 @@
         "angleMount": 0.15,
         "correctionPatternsDir": "C:\\Users\\redSTED\\Documents\\ImSwitch\\imcontrol_slm\\slm_defcorrpattern\\"
     },
-    "focusLock": null,
+    "focusLock": {
+        "camera": "FocusLockCamera",
+        "positioner": "PiezoZ",
+        "updateFreq": 5,
+        "frameCrop_left": 730,
+        "frameCrop_right": 780,
+        "frameCrop_top": 450,
+        "frameCrop_bottom": 900
+    },
     "smartSTED": {
         "fastDetector": "smartSTEDCamera",
         "slowDetector": "APDgreen",
-        "fastLaser": "561"
+        "fastLaser": "488WF"
     },
     "designers": {
         "scanDesigner": "GalvoScanDesigner",
@@ -267,6 +324,12 @@
             "y": 1050,
             "w": 580,
             "h": 580
+        },
+        "wf_ham": {
+            "x": 525,
+            "y": 840,
+            "w": 800,
+            "h": 800
         }
     },
     "availableWidgets": {
@@ -277,10 +340,10 @@
         "FFTWidget": false,
         "ULensesWidget": false,
         "SLMWidget": true,
-        "FocusLockWidget": false,
-        "MotCorrWidget": false,
+        "FocusLockWidget": true,
+        "MotCorrWidget": true,
         "SmartSTEDWidget": true,
-        "LeicaDMIManager": false
+        "LeicaDMIManager": true
     },
     "widgetLayout": {
         "lasersAndAlignmentInSingleDock": false

@@ -11,25 +11,28 @@ from .LaserManager import LaserManager
 
 
 class CoboltLaserManager(LaserManager):
-    def __init__(self, laserInfo, name, **_kwargs):
+    def __init__(self, laserInfo, name, **kwargs):
         # Init laser
         self._laser = FullDigitalLaser(laserInfo.managerProperties['digitalDriver'],
                                        laserInfo.managerProperties['digitalPorts'])
+        self._nidaqManager = kwargs['nidaqManager']
         print(self._laser.idn)
         self._laser.digital_mod = False
         self._laser.enabled = False
-        # self._laser.digital_mod = True  # TODO: What's the point of this?
         self._laser.autostart = False
-        # self._laser.autostart = False  # TODO: What's the point of this?
 
         super().__init__(
             name, isBinary=False, isDigital=True, wavelength=laserInfo.wavelength,
             valueRangeMin=laserInfo.valueRangeMin, valueRangeMax=laserInfo.valueRangeMax,
             valueUnits='mW', valueRangeStep=laserInfo.valueRangeStep
         )
+        print(self._laser.digital_mod)
 
     def setEnabled(self, enabled):
-        self._laser.enabled = enabled
+        if self._laser.digital_mod:
+            self._nidaqManager.setDigital(self.name, enabled)
+        else:
+            self._laser.enabled = enabled
 
     def setValue(self, power):
         power = int(power)
@@ -41,6 +44,7 @@ class CoboltLaserManager(LaserManager):
     def setDigitalMod(self, digital, initialPower):
         if digital:
             self._laser.enter_mod_mode()
+            self._laser.digital_mod = True
             self._laser.power_mod = initialPower * Q_(1, 'mW')
             print('Entered digital modulation mode with power :', initialPower)
             print('Modulation mode is: ', self._laser.mod_mode)

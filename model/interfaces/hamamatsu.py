@@ -209,6 +209,7 @@ class HamamatsuCamera:
         self.properties = {}
         self.max_backlog = 0
         self.number_image_buffers = 0
+        self.flipimage = (False, False)
 
         # Open the camera.
         self.camera_handle = ctypes.c_void_p(0)
@@ -608,40 +609,46 @@ class HamamatsuCamera:
     # necesssitated changes in this function too. /Andreas
 
     def setPropertyValue(self, property_name, property_value):
-
-        # Check if the property exists.
-        if not (property_name in self.properties):
-            print(" unknown property name:", property_name)
-            return False
-
-        # If the value is text, figure out what the
-        # corresponding numerical property value is.
-        if (type(property_value) == bytes):     # Used to test == type("")
-            text_values = self.getPropertyText(property_name)
-            if (property_value in text_values):
-                property_value = float(text_values[property_value])
-            else:
-                print(" unknown property text value:", property_value, "for", property_name)
+        if property_name == "fliplr":
+            self.flipimage = (property_value, self.flipimage[1])
+            return property_value
+        elif property_name == "flipud":
+            self.flipimage = (self.flipimage[0], property_value)
+            return property_value
+        else:
+            # Check if the property exists.
+            if not (property_name in self.properties):
+                print(" unknown property name:", property_name)
                 return False
 
-        # Check that the property is within range.
-        pv_min, pv_max = self.getPropertyRange(property_name)
-        if (property_value < pv_min):
-            print(" set property value", property_value, "is less than minimum of", pv_min, property_name, "setting to minimum")
-            property_value = pv_min
-        if (property_value > pv_max):
-            print(" set property value", property_value, "is greater than maximum of", pv_max, property_name, "setting to maximum")
-            property_value = pv_max
+            # If the value is text, figure out what the
+            # corresponding numerical property value is.
+            if (type(property_value) == bytes):     # Used to test == type("")
+                text_values = self.getPropertyText(property_name)
+                if (property_value in text_values):
+                    property_value = float(text_values[property_value])
+                else:
+                    print(" unknown property text value:", property_value, "for", property_name)
+                    return False
 
-        # Set the property value, return what it was set too.
-        prop_id = self.properties[property_name]
-        p_value = ctypes.c_double(property_value)
-        self.checkStatus(dcam.dcam_setgetpropertyvalue(self.camera_handle,
-                                                       ctypes.c_int32(prop_id),
-                                                       ctypes.byref(p_value),
-                                                       ctypes.c_int32(DCAM_DEFAULT_ARG)),
-                         "dcam_setgetpropertyvalue")
-        return p_value.value
+            # Check that the property is within range.
+            pv_min, pv_max = self.getPropertyRange(property_name)
+            if (property_value < pv_min):
+                print(" set property value", property_value, "is less than minimum of", pv_min, property_name, "setting to minimum")
+                property_value = pv_min
+            if (property_value > pv_max):
+                print(" set property value", property_value, "is greater than maximum of", pv_max, property_name, "setting to maximum")
+                property_value = pv_max
+
+            # Set the property value, return what it was set too.
+            prop_id = self.properties[property_name]
+            p_value = ctypes.c_double(property_value)
+            self.checkStatus(dcam.dcam_setgetpropertyvalue(self.camera_handle,
+                                                        ctypes.c_int32(prop_id),
+                                                        ctypes.byref(p_value),
+                                                        ctypes.c_int32(DCAM_DEFAULT_ARG)),
+                            "dcam_setgetpropertyvalue")
+            return p_value.value
 
     ## setSubArrayMode
     #

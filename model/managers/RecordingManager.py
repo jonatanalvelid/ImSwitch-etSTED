@@ -67,6 +67,7 @@ class RecordingManager(SignalInterface):
                 file.attrs[key] = value
                 dataset.attrs[key] = value
 
+            #print(np.shape(self.__detectorsManager[detectorName].image))
             dataset[:, :] = self.__detectorsManager[detectorName].image
             print('dataset saved')
             file.close()

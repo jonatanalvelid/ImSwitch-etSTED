@@ -29,12 +29,12 @@ class LeicaDMIManager:
         self._position = value
         return self._position
 
-    def position(self, *args):
-        cmd = '71023'
-        return returnMod(self._rs232Manager.send(cmd))
-
     def returnMod(self, reply):
         return reply[6:]
+
+    def position(self, *args):
+        cmd = '71023'
+        return self.returnMod(self._rs232Manager.send(cmd))
 
     def motCorrPos(self, value):
         """ Absolute mot_corr position movement. """

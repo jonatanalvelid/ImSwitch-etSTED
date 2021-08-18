@@ -113,7 +113,8 @@ class FocusLockController(WidgetController):
     def update(self):
         #1 Grab camera frame through cameraHelper and crop
         img = self._master.detectorsManager.execOn(self.camera, lambda c: c.getLatestFrame())
-        img = np.flip(np.swapaxes(img, 0, 1), 1)
+        #img = np.flip(np.swapaxes(img, 0, 1), 1)
+        img = np.flip(img,1)
         #print(np.shape(img))
         #img = img[self.cropFrame[0]:self.cropFrame[1],self.cropFrame[2]:self.cropFrame[3]]
         #2 Pass camera frame and get back focusSignalPosition from ProcessDataThread

@@ -117,6 +117,7 @@ class SetupInfo:
             deviceInfosCopy = deviceInfos.copy()
             for item in list(deviceInfosCopy):
                 if not deviceInfosCopy[item].digitalLine:
+                    #TODO: DigitalLine=0 enters here, as 0 reads as False. Report bug
                     del deviceInfosCopy[item]
             devices.update(deviceInfosCopy)
             i+=1

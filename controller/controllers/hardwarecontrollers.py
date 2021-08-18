@@ -486,12 +486,12 @@ class MotCorrController(WidgetController):
     def changeSlider(self, value):
         """called when the slider is moved, sets the power of the laser to
         value."""
-        self._manager.motCorrPos(self.slider.value())
-        self._widget.motcorrControl.setPointEdit.setText(str(self.slider.value()))
+        self._manager.motCorrPos(self._widget.motcorrControl.slider.value())
+        self._widget.motcorrControl.setPointEdit.setText(str(self._widget.motcorrControl.slider.value()))
 
     def changeEdit(self):
         """called when the user manually changes the intensity value of the
         laser. Sets the laser power to the corresponding value."""
-        self._manager.motCorrPos(float(self.setPointEdit.text()))
-        self._widget.motcorrControl.slider.setValue(float(self.setPointEdit.text()))
+        self._manager.motCorrPos(float(self._widget.motcorrControl.setPointEdit.text()))
+        self._widget.motcorrControl.slider.setValue(float(self._widget.motcorrControl.setPointEdit.text()))
 

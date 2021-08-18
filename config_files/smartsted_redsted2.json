@@ -54,7 +54,7 @@
     "lasers": {
         "488WF": {
             "analogChannel": null,
-            "digitalLine": 0,
+            "digitalLine": 5,
             "managerName": "CoboltLaserManager",
             "managerProperties": {
                 "digitalDriver": "cobolt.cobolt0601.Cobolt0601_f2",
@@ -196,6 +196,18 @@
                 "scanner": 0,
                 "positioner": 1
             }
+        },
+        "StageXY": {
+            "analogChannel": null,
+            "digitalLine": null,
+            "managerName": "MHXYStageManager",
+            "managerProperties": {
+                "axisCount": 2,
+                "axisLabels": "XY",
+                "rs232device": "mhxystage",
+                "scanner": 0,
+                "positioner": 1
+            }
         }
     },
     "rs232devices": {
@@ -262,6 +274,22 @@
                 "dsrdtr": "false",
                 "xonxoff": "false"
             }
+        },
+        "mhxystage": {
+            "managerName": "RS232Manager",
+            "managerProperties": {
+                "port": "ASRL3::INSTR",
+                "encoding": "ascii",
+                "recv_termination": "\r",
+                "send_termination": "\n",
+                "baudrate": 57600,
+                "bytesize": 8,
+                "parity": "none",
+                "stopbits": 2,
+                "rtscts": "false",
+                "dsrdtr": "false",
+                "xonxoff": "false"
+            }
         }
     },
     "scan": {
@@ -286,10 +314,10 @@
         "camera": "FocusLockCamera",
         "positioner": "PiezoZ",
         "updateFreq": 5,
-        "frameCrop_left": 730,
-        "frameCrop_right": 780,
-        "frameCrop_top": 450,
-        "frameCrop_bottom": 900
+        "frameCrop_top": 620,
+        "frameCrop_bottom": 700,
+        "frameCrop_left": 450,
+        "frameCrop_right": 900
     },
     "smartSTED": {
         "fastDetector": "smartSTEDCamera",

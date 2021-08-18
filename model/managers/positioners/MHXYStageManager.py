@@ -26,7 +26,7 @@ class MHXYStageManager(PositionerManager):
         self._position[axis] = self._position[axis] + value
         return self._position[axis]
 
-    def setPosition(self, value, axis):
+    def setPosition(self, value, axis=0):
         if axis == 0:
             cmd = 'moa x ' + str(float(value))
         elif axis == 1:
@@ -38,8 +38,21 @@ class MHXYStageManager(PositionerManager):
         self._position[axis] = value
         return self._position[axis]
 
-    def position(self, axis):
+    def position_old(self, axis):
         if axis == 0 or axis == 1:
             return self._position[axis]
         else:
             print('Wrong axis, has to be 0 or 1.')
+
+    def position(self, axis):
+        if axis == 0:
+            cmd = 'pos x'
+        elif axis == 1:
+            cmd = 'pos y'
+        else:
+            print('Wrong axis, has to be 0 or 1.')
+            return
+        pos = float(self._rs232Manager.send(cmd))
+        self._position[axis] = pos
+        return self._position[axis]
+

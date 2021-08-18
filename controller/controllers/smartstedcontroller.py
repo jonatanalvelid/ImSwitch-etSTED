@@ -266,7 +266,7 @@ class SmartSTEDController(WidgetController):
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             #print(f'Time for pipeline: {t_post-t_pre} ms')
 
-            self.__busy = False
+            self.__busy = False                                                       
             if self.__frame > self.__init_frames:
                 if self.__visualizeMode:
                     self.updateScatter(coords_detected, clear=True)

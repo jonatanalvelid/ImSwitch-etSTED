@@ -24,6 +24,7 @@ class RS232Manager():
 def getRS232port(port, settings):
     try:
         from model.interfaces.RS232Driver import RS232Driver, generateDriverClass
+        print(port)
         DriverClass = generateDriverClass(settings)
         rs232port = DriverClass(port)
         rs232port.initialize()

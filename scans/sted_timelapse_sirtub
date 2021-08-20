@@ -1,0 +1,20 @@
+[analogParameterDict]
+sample_rate = 100000.0
+return_time = 0.01
+target_device = ['ND-GalvoX', 'ND-GalvoY', 'ND-PiezoZ']
+axis_length = [3.0, 3.0, 5.0]
+axis_step_size = [0.025, 0.025, 0.1]
+axis_centerpos = [0.0, 0.0, 0.0]
+axis_startpos = [0, 0, 0]
+sequence_time = 4e-05
+
+[digitalParameterDict]
+sample_rate = 100000.0
+target_device = ['488WF', '561', '640', '775AOM']
+TTL_start = [[0.0], [0.0], [0.0], [0.0]]
+TTL_end = [[0.0], [0.0], [0.001], [0.001]]
+sequence_time = 4e-05
+
+[Modes]
+scan_or_not = True
+

@@ -164,6 +164,7 @@ class RecordingWorker(Worker):
                 while self.__recordingManager.record:
                     for detectorName in self.detectorNames:
                         newframes, _ = self.__recordingManager.detectorsManager[detectorName].getChunk()
+                        #if newframes is not None:
                         n = len(newframes)
                         if n > 0:
                             it = currentFrame[detectorName]

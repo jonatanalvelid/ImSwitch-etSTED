@@ -4,7 +4,7 @@ from cupyx.scipy import ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0):
+def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0, border_limit=10):
     f_multiply = 10000
     if bkg is None or binary_mask is None:
         print('You have to provide a background image and a binary mask for this pipeline!')
@@ -17,6 +17,10 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_d
             bkg = cp.zeros(cp.shape(img)).astype('uint16')
         else:
             bkg = cp.array(bkg).astype('uint16')
+        if np.shape(img) != np.shape(binary_mask):
+            binary_mask = cp.zeros(cp.shape(img)).astype('uint16')
+        else:
+            binary_mask = cp.array(binary_mask).astype('uint16')
         # subtract last img (noisier, but quicker)
         img_ana = cp.subtract(img,bkg).astype('uint16')
         img_ana[img_ana > 50000] = 0
@@ -87,11 +91,22 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_d
     else:
         coordinates = cp.array(coordinates)
 
-    if len(coordinates) > num_peaks:
-        coordinates = coordinates[:num_peaks]
 
     coordinates = cp.fliplr(coordinates)
     coordinates = coordinates.get()
+
+    # remove everything on the border (takes ~2-3ms if there are a lot of detected coordinates, but usually this is not the case)
+    imsize = cp.shape(img)[0]
+    idxremove = []
+    for idx, coordpair in enumerate(coordinates):
+        if coordpair[0] < border_limit or coordpair[0] > imsize - border_limit or coordpair[1] < border_limit or coordpair[1] > imsize - border_limit:
+            idxremove.append(idx)
+    coordinates = np.delete(coordinates,idxremove,axis=0)
+
+    # remove everyhting down to a certain length
+    if len(coordinates) > num_peaks:
+        coordinates = coordinates[:int(num_peaks),:]
+
     if testmode:
         img_ana = img_ana.get()
         return coordinates, img_ana

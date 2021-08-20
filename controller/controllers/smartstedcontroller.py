@@ -105,7 +105,7 @@ class SmartSTEDController(WidgetController):
         self.__binary_mask = None
         self.__binary_stack = None
         self.__binary_frames = 10
-        self.__init_frames = 1
+        self.__init_frames = 5
         self.__validationFrames = 0
         self.__frame = 0
 
@@ -265,8 +265,7 @@ class SmartSTEDController(WidgetController):
             t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             #print(f'Time for pipeline: {t_post-t_pre} ms')
-
-            self.__busy = False                                                       
+                                                   
             if self.__frame > self.__init_frames:
                 if self.__visualizeMode:
                     self.updateScatter(coords_detected, clear=True)
@@ -340,9 +339,11 @@ class SmartSTEDController(WidgetController):
             if self.__validateMode:
                 self.__prevAnaFrames.append(img_ana)
             self.__frame += 1
+            
+            self.__busy = False  # try to move this here, was before the if self._frame < self._initframes loop before
 
-            t_finalizerunpipe = millis() - self.t_call
-            print(f'Time between runPipeline call and finish: {t_finalizerunpipe} ms')
+            #t_finalizerunpipe = millis() - self.t_call
+            #print(f'Time between runPipeline call and finish: {t_finalizerunpipe} ms')
 
     def saveValidationImages(self, prev=True, prevAna=True):
         if prev:

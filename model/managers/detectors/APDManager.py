@@ -32,6 +32,7 @@ class APDManager(DetectorManager):
         self._nidaq_clock_source = r'ctr2InternalOutput'  # counter output task generating a 1 MHz frequency digitial pulse train
         self._detection_samplerate = float(1e6)
         self.acquisition = True
+        self._newframe = False
 
         self._channel = APDInfo.managerProperties["ctrInputLine"]
         self._terminal = APDInfo.managerProperties["terminal"]
@@ -104,7 +105,12 @@ class APDManager(DetectorManager):
         super().setBinning(binning)
     
     def getChunk(self):
-        pass
+        if self._newframe:
+            im_ret = np.expand_dims(self.getLatestFrame(), axis=0)
+        else:
+            im_ret = None
+        self._newframe = False
+        return im_ret, None
 
     def flushBuffers(self):
         pass
@@ -212,6 +218,7 @@ class ScanWorker(Worker):
         #self._alldata += len(throwdata)
         #print(f'sw fin: {self._name}: length of all data so far: {self._alldata}')
         self.acqDoneSignal.emit()
+        self._manager._newframe = True
         #print(self._name)
         #print(np.mean(self._manager._image))
         #self.close()

@@ -19,4 +19,4 @@ class Cobolt0601_f2(Cobolt0601):
 
     @power_mod.setter
     def power_mod(self, value):
-        self.query('p {}'.format(value/1000))
+        self.query('slmp {}'.format(value))

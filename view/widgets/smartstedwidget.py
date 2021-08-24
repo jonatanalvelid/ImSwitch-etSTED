@@ -57,6 +57,7 @@ class SmartSTEDWidget(Widget):
         self.recordBinaryMaskButton = guitools.BetterPushButton('Record binary mask')
         self.loadScanParametersButton = guitools.BetterPushButton('Load scan parameters')
         self.setUpdatePeriodButton = guitools.BetterPushButton('Set update period')
+        self.setBusyFalseButton = guitools.BetterPushButton('Set busy False')
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
         self.visualizeCheck = QtGui.QCheckBox('Visualize')
@@ -126,6 +127,7 @@ class SmartSTEDWidget(Widget):
         self.grid.addWidget(self.validateCheck, currentRow, 3)
         self.grid.addWidget(self.loadScanParametersButton, currentRow, 4)
         self.grid.addWidget(self.recordBinaryMaskButton, currentRow, 5)
+        self.grid.addWidget(self.setBusyFalseButton, currentRow, 6)
         
         currentRow += 2
 

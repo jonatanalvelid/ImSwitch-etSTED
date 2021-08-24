@@ -78,6 +78,7 @@ class SmartSTEDController(WidgetController):
         self._widget.recordBinaryMaskButton.clicked.connect(self.initiateBinaryMask)
         self._widget.loadScanParametersButton.clicked.connect(self.setScanParameters)
         self._widget.setUpdatePeriodButton.clicked.connect(self.setFastUpdatePeriod)
+        self._widget.setBusyFalseButton.clicked.connect(self.setBusyFalse)
         self._commChannel.sendScanParameters.connect(lambda analogParams, digitalParams: self.assignScanParameters(analogParams, digitalParams))
 
         # Create scatter plot item for sending to the viewbox while analysis is running
@@ -229,6 +230,9 @@ class SmartSTEDController(WidgetController):
             self.__running = False
             self.__param_vals = list()
 
+    def setBusyFalse(self):
+        self.__busy = False
+
     def getPipelineName(self):
         pipelineidx = self._widget.analysisPipelinePar.currentIndex()
         pipelinename = self._widget.analysisPipelines[pipelineidx]
@@ -247,6 +251,7 @@ class SmartSTEDController(WidgetController):
         self.transform = getattr(importlib.import_module(f'smartsted.transform_pipelines.{transformname}'), f'{transformname}')
         
     def runPipeline(self, im, init):
+        #print(f'runPipeline called: self.__busy status: {self.__busy}')
         if not self.__busy:
             t_sincelastcall = millis() - self.t_call
             #print(f'Time since last runPipeline call: {t_sincelastcall} ms')
@@ -257,12 +262,12 @@ class SmartSTEDController(WidgetController):
 
             self.__busy = True
             
-            t_pre = millis()
+            #t_pre = millis()
             if self.__visualizeMode or self.__validateMode:
                 coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, (self.__visualizeMode or self.__validateMode), *self.__param_vals)
             else:
                 coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, *self.__param_vals)
-            t_post = millis()
+            #t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             #print(f'Time for pipeline: {t_post-t_pre} ms')
                                                    
@@ -333,14 +338,15 @@ class SmartSTEDController(WidgetController):
 
                     self.__prevFrames.append(im)
                     self.saveValidationImages(prev=True, prevAna=False)
+                    self.__busy = False
                     return
             self.__bkg = im
             self.__prevFrames.append(im)
             if self.__validateMode:
                 self.__prevAnaFrames.append(img_ana)
             self.__frame += 1
-            
-            self.__busy = False  # try to move this here, was before the if self._frame < self._initframes loop before
+
+            self.__busy = False
 
             #t_finalizerunpipe = millis() - self.t_call
             #print(f'Time between runPipeline call and finish: {t_finalizerunpipe} ms')
@@ -458,17 +464,20 @@ class SmartSTEDController(WidgetController):
         self._commChannel.requestScanParameters.emit()
 
     def setCenterScanParameter(self, position):
-        self._analogParameterDict['axis_centerpos'] = []
-        for index, (positionerName, positionerInfo) in enumerate(self._setupInfo.positioners.items()):
-            if positionerInfo.managerProperties['scanner']:
-                self._analogParameterDict['target_device'].append(positionerName)
-                if positionerName != 'None':
-                    center = position[index]
-                    if index==0:
-                        center = self.addFastAxisShift(center)
-                    self._analogParameterDict['axis_centerpos'].append(center)
-                else:
-                    self._analogParameterDict['axis_centerpos'].append(0.0)      
+        if self._analogParameterDict:
+            self._analogParameterDict['axis_centerpos'] = []
+            for index, (positionerName, positionerInfo) in enumerate(self._setupInfo.positioners.items()):
+                if positionerInfo.managerProperties['scanner']:
+                    self._analogParameterDict['target_device'].append(positionerName)
+                    if positionerName != 'None':
+                        center = position[index]
+                        if index==0:
+                            center = self.addFastAxisShift(center)
+                        self._analogParameterDict['axis_centerpos'].append(center)
+                    else:
+                        self._analogParameterDict['axis_centerpos'].append(0.0)      
+        else:
+            print('No analog parameter dict. Load scan parameters before initiating smartSTED.')
 
     def addFastAxisShift(self, center):
         """ Based on second-degree curved surface fit to 2D-sampling of dwell time and pixel size induced shifts. """

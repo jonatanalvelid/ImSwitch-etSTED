@@ -369,9 +369,9 @@
         "ULensesWidget": false,
         "SLMWidget": true,
         "FocusLockWidget": true,
-        "MotCorrWidget": true,
+        "MotCorrWidget": false,
         "SmartSTEDWidget": true,
-        "LeicaDMIManager": true
+        "LeicaDMIManager": false
     },
     "widgetLayout": {
         "lasersAndAlignmentInSingleDock": false

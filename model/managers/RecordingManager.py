@@ -69,7 +69,7 @@ class RecordingManager(SignalInterface):
 
             #print(np.shape(self.__detectorsManager[detectorName].image))
             dataset[:, :] = self.__detectorsManager[detectorName].image
-            print('dataset saved')
+            #print('dataset saved')
             file.close()
 
     def snapImage(self, detectorName, savename, image, attrs):
@@ -86,7 +86,7 @@ class RecordingManager(SignalInterface):
             dataset.attrs[key] = value
 
         dataset[:, :] = image
-        print('dataset saved')
+        #print('dataset saved')
         file.close()
 
 

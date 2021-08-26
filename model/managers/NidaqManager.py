@@ -79,7 +79,7 @@ class NidaqManager(SignalInterface):
                                                                    initial_count=0,
                                                                    edge=nidaqmx.constants.Edge.RISING,
                                                                    count_direction=nidaqmx.constants.CountDirection.COUNT_UP)
-        print(f"task: name:{name}, terminal: {terminal}")
+        #print(f"task: name:{name}, terminal: {terminal}")
         citaskchannel.ci_count_edges_term = terminal
         # not sure if below is needed/what is standard/if I should use DMA (seems to be preferred) or INTERRUPT (as in Imspector, more load on CPU)
         citaskchannel.ci_data_xfer_mech = nidaqmx.constants.DataTransferActiveTransferMode.DMA
@@ -236,7 +236,7 @@ class NidaqManager(SignalInterface):
         if not self.busy:
             self.busy = True
             self.signalSent = False
-            print('Create nidaq scan...')
+            #print('Create nidaq scan...')
 
             # TODO: fill this
             stageDic = signalDic['scanSignalsDict']
@@ -323,13 +323,13 @@ class NidaqManager(SignalInterface):
                 #print('AO task started')
                 self.aoTaskWaiter.start()
             self.scanStartSignal.emit()
-            print('Nidaq scan started!')
+            #print('Nidaq scan started!')
 
     def stopTask(self, taskName):
         self.tasks[taskName].stop()
         self.tasks[taskName].close()
         del self.tasks[taskName]
-        print(f'Task {taskName} deleted')
+        #print(f'Task {taskName} deleted')
     
     def inputTaskDone(self, taskName):
         if not self.signalSent:
@@ -346,7 +346,7 @@ class NidaqManager(SignalInterface):
     def scanDone(self):
         self.signalSent = True
         self.busy = False
-        print('Nidaq scan finished!')
+        #print('Nidaq scan finished!')
         self.scanDoneSignal.emit()
 
     def runContinuous(self, digital_targets, digital_signals):

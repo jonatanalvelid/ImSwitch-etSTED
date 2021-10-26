@@ -1,4 +1,5 @@
 def wf_600_scan_30(coords_input, *args, **kwargs):
+        "Pre-calibrated coordinate transform for etSTED in the REDsted"
         # from fit with ipynb with imagej-determined coords
         #params_fit = [  3.93752742e-10,   7.13015278e-10,   3.50209221e-10,
         #    -7.09835640e-11,  -6.68130980e-07,  -1.54426116e-06,
@@ -31,7 +32,7 @@ def wf_600_scan_30(coords_input, *args, **kwargs):
                         1.578389232602838810e+01
                         ]
 
-        #print(coords_input)
+        print(coords_input)
         c1 = coords_input[0]
         c2 = coords_input[1]
         x_i1 = params_fit[0]*c1**3 + params_fit[1]*c2**3 + params_fit[2]*c2*c1**2 + params_fit[3]*c1*c2**2 + params_fit[4]*c1**2 + params_fit[5]*c2**2 + params_fit[6]*c1*c2 + params_fit[7]*c1 + params_fit[8]*c2 + params_fit[9]

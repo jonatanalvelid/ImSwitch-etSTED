@@ -1,8 +1,3 @@
-"""
-Created on Tue Apr 13 2021
-
-@author: jonatanalvelid
-"""
 from numpy.lib.function_base import asarray_chkfinite
 from pyicic import IC_ImagingControl
 import constants

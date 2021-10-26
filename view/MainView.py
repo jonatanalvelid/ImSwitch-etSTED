@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 20 15:13:24 2020
-
-@author: _Xavi
-"""
 import os
 
 import numpy as np
@@ -43,14 +37,6 @@ class MainView(QtGui.QMainWindow):
 
         # Widget factory
         self.factory = widgets.WidgetFactory(defaultPreset)
-
-        # Think what is self. and what is not !
-
-        # Shortcuts
-        # TODO
-
-        # Menu Bar
-        # TODO
 
         # Window
         self.setWindowTitle('ImSwitch')

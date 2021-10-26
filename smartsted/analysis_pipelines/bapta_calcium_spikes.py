@@ -4,15 +4,14 @@ from cupyx.scipy import ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0, border_limit=10):
+def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0, border_limit=10):
     f_multiply = 10000
     if bkg is None or binary_mask is None:
         print('You have to provide a background image and a binary mask for this pipeline!')
         img_ana = cp.zeros(cp.shape(cp.array(img))).astype('uint16')
     else:
         img = cp.array(img).astype('uint16')
-        #print(cp.max(img))
-        #print(cp.max(bkg))
+
         if np.shape(img) != np.shape(bkg):
             bkg = cp.zeros(cp.shape(img)).astype('uint16')
         else:
@@ -29,10 +28,7 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_d
         img_div = bkg
         # replace noise with a very high value to avoid detecting noise
         img_div[img_div < noise_level] = 100000
-        #print(cp.max(img_ana))
-        #print(cp.max(img_div))
         img_ana = cp.divide(img_ana, img_div)
-        #print(cp.max(img_ana))
         img_ana = img_ana * cp.array(binary_mask)
         
         img_ana = ndi.filters.gaussian_filter(img_ana, smoothing_radius)  # Gaussian filter the image, to remove noise and so on, to get a better center estimate
@@ -41,7 +37,6 @@ def pipeline_maxpeaks_opt(img, bkg=None, binary_mask=None, testmode=False, min_d
     thresh_abs = thresh_abs * f_multiply
     size = int(2 * min_dist + 1)
     img_ana = (img_ana * f_multiply).astype('uint16')
-    #print(cp.max(img_ana))
     # get filter structuring element
     footprint = cv2.getStructuringElement(cv2.MORPH_RECT, ksize=[size,size])
     # maximum filter (dilation + equal)

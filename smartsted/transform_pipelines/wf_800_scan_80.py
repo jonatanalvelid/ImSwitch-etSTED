@@ -1,5 +1,6 @@
 def wf_800_scan_80(coords_input, *args, **kwargs):
-        # from fit with ipynb with imagej-determined coords
+        "Pre-calibrated coordinate transform for etSTED in the REDsted"
+        # from fit with ipynb with imagej-localized coords
         #params_fit = [  3.93752742e-10,   7.13015278e-10,   3.50209221e-10,
         #    -7.09835640e-11,  -6.68130980e-07,  -1.54426116e-06,
         #    -7.86134317e-08,   5.41977917e-02,   1.09324417e-03,
@@ -8,7 +9,7 @@ def wf_800_scan_80(coords_input, *args, **kwargs):
         #    2.62879875e-06,   8.50711143e-07,  -1.89490355e-03,
         #    5.25656872e-02,  -4.33482929e+01] 
 
-        # from fit with python widget - ham cam - updated 2021-08-27 - scan 20 us dwell
+        # from fit with python widget - updated 2021-08-27 - scan 20 us dwell
         params_fit = [-1.188033331880831518e-09,
                         1.097083366010643169e-09,
                         -5.273500980338464584e-10,

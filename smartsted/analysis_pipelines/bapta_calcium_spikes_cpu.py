@@ -3,7 +3,7 @@ import scipy.ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1):
+def bapta_calcium_spikes_cpu(img, bkg=None, binary_mask=None, testmode=False, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1):
     f_multiply = 100
     if bkg is None or binary_mask is None or np.shape(img) != np.shape(bkg):
         print('You have to provide a background image and a binary mask for this pipeline!')
@@ -27,9 +27,7 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
     size = np.int(2 * min_dist + 1)
     img_ana = np.clip(img_ana, a_min=0, a_max=None)
     img_ana = (img_ana * f_multiply).astype('uint16')
-    #print(np.max(img_ana))
-    #print(np.min(img_ana))
-    #print(np.mean(img_ana))
+
     # get filter structuring element
     footprint = cv2.getStructuringElement(cv2.MORPH_RECT, ksize=[size,size])
     # maximum filter (dilation + equal)
@@ -55,7 +53,6 @@ def pipeline_maxpeaks_opt_np(img, bkg=None, binary_mask=None, testmode=False, mi
             else:
                 # Use KDtree to find the peaks that are too close to each other
                 tree = cKDTree(coordinates, balanced_tree=False, compact_nodes=False, leafsize=50)
-                #print(9)
 
                 indices = tree.query_ball_point(coordinates, r=min_dist, p=np.inf, return_sorted=False)
                 rejected_peaks_indices = set()

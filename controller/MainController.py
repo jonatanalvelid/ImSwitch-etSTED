@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 20 15:08:33 2020
-
-@author: _Xavi
-"""
 from . import controllers
 from .CommunicationChannel import CommunicationChannel
 from .MasterController import MasterController

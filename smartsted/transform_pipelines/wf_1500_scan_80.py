@@ -1,4 +1,5 @@
 def wf_1500_scan_80(coords_input, *args, **kwargs):
+        "Pre-calibrated coordinate transform for etSTED in the REDsted"
         # from fit with ipynb with imagej-determined coords
         #params_fit = [  3.93752742e-10,   7.13015278e-10,   3.50209221e-10,
         #    -7.09835640e-11,  -6.68130980e-07,  -1.54426116e-06,

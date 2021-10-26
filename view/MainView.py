@@ -201,16 +201,16 @@ class MainView(QtGui.QMainWindow):
         self.recordingDock.addWidget(self.recordingWidget)
         dockArea.addDock(self.recordingDock, 'bottom', self.imageControlsDock)
 
-        consoleDock = Dock('Console', size=(1, 1))
-        consoleDock.addWidget(console)
-        dockArea.addDock(consoleDock, 'bottom', self.recordingDock)
+        self.consoleDock = Dock('Console', size=(1, 1))
+        self.consoleDock.addWidget(console)
+        dockArea.addDock(self.consoleDock, 'bottom', self.recordingDock)
 
         # Objective motorized correction collar widget dock
         if self.availableWidgetsInfo.MotCorrWidget:
             motCorrDock = Dock('Objective Mot Corr', size=(1, 1))
             self.motCorrWidget = self.factory.createWidget(widgets.MotCorrWidget)
             motCorrDock.addWidget(self.motCorrWidget)
-            dockArea.addDock(motCorrDock, 'below',  self.imageControlsDock)
+            dockArea.addDock(motCorrDock, 'above',  self.consoleDock)
 
         # Add dock area to layout
         layout.addWidget(dockArea)

@@ -3,4 +3,4 @@ from .basewidgets import WidgetFactory
 from .hardwarewidgets import *
 from .imagewidgets import *
 from .scanwidgets import *
-from .smartstedwidget import *
+from .etstedwidget import *

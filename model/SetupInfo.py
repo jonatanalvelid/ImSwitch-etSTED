@@ -76,7 +76,7 @@ class FocusLockInfo:
 
 
 @dataclass(frozen=True)
-class SmartSTEDInfo:
+class EtSTEDInfo:
     fastDetector: str
     slowDetector: str
     fastLaser: str
@@ -99,7 +99,7 @@ class SetupInfo:
     scan: ScanInfo
     slm: SLMInfo
     focusLock: FocusLockInfo
-    smartSTED: SmartSTEDInfo
+    etSTED: EtSTEDInfo
 
     designers: DesignersInfo
 

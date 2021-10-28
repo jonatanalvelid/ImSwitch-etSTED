@@ -4,4 +4,4 @@ from .hardwarecontrollers import *
 from .imagecontrollers import *
 from .scancontrollers import *
 from .focuslockcontroller import *
-from .smartstedcontroller import *
+from .etstedcontroller import *

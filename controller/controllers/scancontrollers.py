@@ -37,7 +37,7 @@ class ScanController(SuperScanController):
         # Connect CommunicationChannel signals
         self._commChannel.prepareScan.connect(lambda: self.setScanButton(True))
         self._commChannel.toggleBlockScanWidget.connect(lambda block: self.toggleBlockWidget(block))
-        self._commChannel.requestScanParameters.connect(self.sendScanParameters)  # how do I return something from this signal call back to smartstedcontroller? Is it even possible?
+        self._commChannel.requestScanParameters.connect(self.sendScanParameters)  # how do I return something from this signal call back to etstedcontroller? Is it even possible?
 
         # Connect ScanWidget signals
         self._widget.saveScanBtn.clicked.connect(self.saveScan)

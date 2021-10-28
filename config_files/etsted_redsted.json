@@ -11,7 +11,7 @@
                 "purpose": "acquisition"
             }
         },
-        "smartSTEDCamera": {
+        "etSTEDCamera": {
             "analogChannel": null,
             "digitalLine": null,
             "managerName": "HamamatsuManager",
@@ -319,8 +319,8 @@
         "frameCrop_left": 450,
         "frameCrop_right": 900
     },
-    "smartSTED": {
-        "fastDetector": "smartSTEDCamera",
+    "etSTED": {
+        "fastDetector": "etSTEDCamera",
         "slowDetector": "APDgreen",
         "fastLaser": "488WF"
     },
@@ -341,13 +341,13 @@
             "w": 1500,
             "h": 1500
         },
-        "smartsted": {
+        "etsted": {
             "x": 200,
             "y": 500,
             "w": 1500,
             "h": 1500
         },
-        "smartsted_30x30": {
+        "etsted_30x30": {
             "x": 690,
             "y": 1050,
             "w": 580,
@@ -370,7 +370,7 @@
         "SLMWidget": true,
         "FocusLockWidget": true,
         "MotCorrWidget": false,
-        "SmartSTEDWidget": true,
+        "EtSTEDWidget": true,
         "LeicaDMIManager": false
     },
     "widgetLayout": {

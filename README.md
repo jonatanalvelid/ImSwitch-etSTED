@@ -38,7 +38,7 @@ The default configuration file is etsted_sim.json, which contains a mock camera 
 
 1. Start LIVEVIEW of the mock camera by pressing ```LIVEVIEW``` in the ```Image Controls``` widget.
 2. Switch to the etSTED widget by pressing the etSTED tab above the ```Laser Control``` widget.
-3. Record a binary mask containing all the pixels by pressing ```Record binary mask```. 
+3. Record a binary mask containing all the pixels by pressing ```Record binary mask``` (it will show as all black due to all pixels having the same value). 
 4. Load a CPU-version of the bapta calcium spike detection pipeline by pressing ```Load pipeline```. 
 5. Tick ```Visualize``` in order to run the mock experiment while showing the preprocessed images in real-time in the pop-out help widget.
 6. Run mock experiment by pressing ```Initiate```.

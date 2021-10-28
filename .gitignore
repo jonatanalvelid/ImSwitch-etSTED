@@ -71,3 +71,4 @@ config_files/options.json
 
 # mypy cache
 .mypy_cache/
+model/managers/LeicaDMIManager.py

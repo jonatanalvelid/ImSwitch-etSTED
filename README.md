@@ -16,7 +16,7 @@ The software was tested to run on Windows 10 and with python=3.7. Typical instal
 
 Mock etSTED experiments can be performed with the simulated camera provided in ImSwitch-etSTED. For real etSTED experiments, the software requires a NI-DAQ data acquisition board and surrounding microscope hardware (see ImSwitch documentation for further information).
 
-To prepare an environment, install ImSwitch from PyPI with the following command:
+To prepare an environment, install ImSwitch from PyPI with the following command in an environment running python=3.7:
 ```
 pip install ImSwitch
 ```

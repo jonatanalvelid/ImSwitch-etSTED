@@ -270,14 +270,14 @@ class EtSTEDController(WidgetController):
 
             self.__busy = True
             
-            #t_pre = millis()
+            t_pre = millis()
             if self.__visualizeMode or self.__validateMode:
                 coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, (self.__visualizeMode or self.__validateMode), *self.__param_vals)
             else:
                 coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, *self.__param_vals)
-            #t_post = millis()
+            t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
-            #print(f'Time for pipeline: {t_post-t_pre} ms')
+            print(f'Time for pipeline: {t_post-t_pre} ms')
 
             # run if the initial frames have passed
             if self.__frame > self.__init_frames:

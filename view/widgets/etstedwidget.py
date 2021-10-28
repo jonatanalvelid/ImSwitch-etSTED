@@ -1,8 +1,3 @@
-"""
-Created on Tue Apr 13 2021
-
-@author: jonatanalvelid
-"""
 import os
 from inspect import signature
 

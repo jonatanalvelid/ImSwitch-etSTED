@@ -12,21 +12,19 @@ The optimised real-time BAPTA calcium spike event detection analysis pipeline is
 The coordinate transforms are available in etsted\transform_pipelines\coord_transform.py (general, for calibration during running ImSwitch) and wf_800_scan_80.py (pre-calibrated for the microscope used in the manuscript). 
 
 ## Installation
-The software was tested to run on Windows 10 and with python=3.7. Typical install time for the required environment is 3-5 min in conda.
-
-Mock etSTED experiments can be performed with the simulated camera provided in ImSwitch-etSTED. For real etSTED experiments, the software requires a NI-DAQ data acquisition board and surrounding microscope hardware (see ImSwitch documentation for further information).
+The software was tested to run on Windows 10 and with python=3.7. Typical install time for the required environment is 3-5 min in conda. For further instructions, follow Installation Option B in the ImSwitch documentation (https://imswitch.readthedocs.io/), and addditionally install opencv according to below. 
 
 To prepare an environment, install ImSwitch from PyPI with the following command in an environment running python=3.7:
 ```
 pip install ImSwitch
 ```
 
-To run the optimised real-time BAPTA calcium spike event detection analysis pipeline additionally opencv has to be installed in the same environment, use the following command:
+To run the optimised real-time BAPTA calcium spike event detection analysis pipeline, both real and mock, additionally opencv has to be installed in the same environment, use the following command:
 ```
 pip install opencv-python
 ```
 
-In order to run the GPU-boosted analysis pipeline, CUDA Toolkit has additionally to be installed on the machine, together with the cupy package in the same environment. See instructions at https://docs.cupy.dev/en/stable/install.html. 
+In order to run the GPU-boosted analysis pipeline in real etSTED experiments, CUDA Toolkit has additionally to be installed on the machine, together with the cupy package in the same environment. See instructions at https://docs.cupy.dev/en/stable/install.html. 
 
 Choose the configuration file for your microscope in \config_files\options.json.
 
@@ -34,6 +32,8 @@ Prepare ImSwitch-etSTED by downloading or forking the code, and to start it run 
 
 
 ## Demo - mock etSTED experiment
+Mock etSTED experiments can be performed with the simulated camera provided in ImSwitch-etSTED.
+
 The default configuration file is etsted_sim.json, which contains a mock camera generating noisy images with occasional intensity spikes running at 10 Hz, a mock point-detector, and two mock lasers for performing mock etSTED experiments. The following steps can be followed to initiate a mock experiment, taking 1-3 min to set up and run:
 
 1. Start LIVEVIEW of the mock camera by pressing ```LIVEVIEW``` in the ```Image Controls``` widget.
@@ -47,7 +47,7 @@ The default configuration file is etsted_sim.json, which contains a mock camera 
 If the widget softlocks due to not following the steps above and not having hardware connected, press the ```Unlock softlock``` button. 
 
 ## Running etSTED experiments
-To perform etSTED experiments, use at least one camera for the fast method, one laser for the fast method, one laser for the scanning method, and one point-detector for the scanning method. Compile a configuration JSON file according to the instructions in the ImSwitch documentation and looking at the provided examples. The etSTED widget section requires the above-mentioned pieces of hardware to be listed. Compile an analysis pipeline for your task at hand, using the same input and output as the ones provided and additional numerical input parameters, alternatively use the intensity spike detection pipeline provided. Then follow the steps described above, with the following modifications:
+For real etSTED experiments, the software requires a NI-DAQ data acquisition board and surrounding microscope hardware (see ImSwitch documentation for further information). To perform etSTED experiments, use at least one camera for the fast method, one laser for the fast method, one laser for the scanning method, and one point-detector for the scanning method. Compile a configuration JSON file according to the instructions in the ImSwitch documentation and looking at the provided examples. The etSTED widget section requires the above-mentioned pieces of hardware to be listed. Compile an analysis pipeline for your task at hand, using the same input and output as the ones provided and additional numerical input parameters, alternatively use the intensity spike detection pipeline provided. Then follow the steps described above, with the following modifications:
 
 1. Configure the camera settings in the ```Image Controls``` widget. Use an exposure time smaller than the ```Update period``` set in the etSTED widget.
 2. Adjust the binary threshold and smoothing until a binary mask of the region of interest is calculated. This will automatically be used by the method upon recording. 

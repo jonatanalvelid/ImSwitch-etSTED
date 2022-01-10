@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 20 15:17:46 2020
-
-@author: _Xavi
-"""
-
 import os
 import sys
 import logging

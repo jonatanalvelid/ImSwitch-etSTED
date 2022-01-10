@@ -28,7 +28,7 @@ class WidgetAvailabilityInfo:
     SLMWidget: bool = True
     FocusLockWidget: bool = True
     MotCorrWidget: bool = True
-    SmartSTEDWidget: bool = True
+    EtSTEDWidget: bool = True
     LeicaDMIManager: bool = True
 
 

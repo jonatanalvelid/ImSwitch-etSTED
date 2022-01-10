@@ -142,7 +142,7 @@ class OptimizedImageItem(pg.ImageItem):
 
         # if the image data is a small int, then we can combine levels + lut
         # into a single lut for better performance
-        levels = self.levels
+        levels = np.array(self.levels)
         if levels is not None and levels.ndim == 1 and image.dtype in (np.ubyte, np.uint16):
             if self._effectiveLut is None:
                 eflsize = 2**(image.itemsize*8)

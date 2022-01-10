@@ -68,3 +68,7 @@ dlls/opencv_core340.dll
 # Generated config files
 config_files/options.json
 .vscode/settings.json
+
+# mypy cache
+.mypy_cache/
+model/managers/LeicaDMIManager.py

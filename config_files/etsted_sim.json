@@ -1,0 +1,163 @@
+{
+    "detectors": {
+        "etSTEDMockCamera": {
+          "analogChannel": null,
+          "digitalLine": null,
+          "managerName": "TISManager",
+          "managerProperties": {
+            "purpose": "acquisition",
+            "cameraListIndex": 0,
+            "tis": {
+              "exposure": 0,
+              "gain": 0,
+              "brightness": 0,
+              "image_width": 800,
+              "image_height": 800
+            }
+          }
+        },
+        "APDred": {
+            "analogChannel": null,
+            "digitalLine": null,
+            "managerName": "APDManager",
+            "managerProperties": {
+                "ctrInputLine": 0,
+                "terminal": "PFI0",
+                "cameraListIndex": null,
+                "purpose": "acquisition"
+            }
+        }
+    },
+    "lasers": {
+        "488": {
+            "analogChannel": null,
+            "digitalLine": 0,
+            "managerName": "CoboltLaserManager",
+            "managerProperties": {
+                "digitalDriver": "cobolt.cobolt0601.Cobolt0601_f2",
+                "digitalPorts": [
+                    "ASRL9::INSTR"
+                ]
+            },
+            "wavelength": 488,
+            "valueRangeMin": 0,
+            "valueRangeMax": 200,
+            "valueRangeStep": 1
+        },
+        "640": {
+            "analogChannel": null,
+            "digitalLine": 2,
+            "managerName": "NidaqLaserManager",
+            "managerProperties": {},
+            "wavelength": 640,
+            "valueRangeMin": 0,
+            "valueRangeMax": 1,
+            "valueRangeStep": 1
+        }
+    },
+    "positioners": {
+        "ND-GalvoX": {
+            "analogChannel": 0,
+            "digitalLine": null,
+            "managerName": "NidaqAOPositionerManager",
+            "managerProperties": {
+                "conversionFactor": 17.44,
+                "minVolt": -10,
+                "maxVolt": 10,
+                "vel_max": 0.1,
+                "acc_max": 0.0001,
+                "axisCount": 1,
+                "axisLabels": "X",
+                "scanner": 1,
+                "positioner": 0
+            }
+        },
+        "ND-GalvoY": {
+            "analogChannel": 1,
+            "digitalLine": null,
+            "managerName": "NidaqAOPositionerManager",
+            "managerProperties": {
+                "conversionFactor": 16.63,
+                "minVolt": -10,
+                "maxVolt": 10,
+                "vel_max": 0.1,
+                "acc_max": 0.0001,
+                "axisCount": 1,
+                "axisLabels": "Y",
+                "scanner": 1,
+                "positioner": 0
+            }
+        },
+        "ND-PiezoZ": {
+            "analogChannel": 2,
+            "digitalLine": null,
+            "managerName": "NidaqAOPositionerManager",
+            "managerProperties": {
+                "conversionFactor": 1.0,
+                "minVolt": 0,
+                "maxVolt": 10,
+                "vel_max": 1000.0,
+                "acc_max": 1000.0,
+                "axisCount": 1,
+                "axisLabels": "Z",
+                "scanner": 1,
+                "positioner": 0
+            }
+        }
+    },
+    "rs232devices": {
+    },
+    "scan": {
+        "stage": {
+            "sampleRate": 100000.0,
+            "returnTime": 0.01
+        },
+        "ttl": {
+            "sampleRate": 100000.0
+        }
+    },
+    "slm": null,
+    "focusLock": null,
+    "etSTED": {
+        "fastDetector": "etSTEDCamera",
+        "slowDetector": "APDred",
+        "fastLaser": "488"
+    },
+    "designers": {
+        "scanDesigner": "GalvoScanDesigner",
+        "TTLCycleDesigner": "PointScanTTLCycleDesigner"
+    },
+    "rois": {
+        "Full chip": {
+            "x": 0,
+            "y": 0,
+            "w": 2448,
+            "h": 2048
+        },
+        "etSTED_wf": {
+            "x": 525,
+            "y": 840,
+            "w": 800,
+            "h": 800
+        }
+    },
+    "availableWidgets": {
+        "AlignWidgetXY": false,
+        "AlignWidgetAverage": false,
+        "AlignmentLineWidget": false,
+        "BeadRecWidget": false,
+        "FFTWidget": false,
+        "ULensesWidget": false,
+        "SLMWidget": false,
+        "FocusLockWidget": false,
+        "MotCorrWidget": false,
+        "EtSTEDWidget": true,
+        "LeicaDMIManager": false
+    },
+    "widgetLayout": {
+        "lasersAndAlignmentInSingleDock": false
+    },
+    "scanDefaults": {
+        "defaultScanFile": null
+    }
+}

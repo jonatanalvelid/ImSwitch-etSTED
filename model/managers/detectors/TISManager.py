@@ -151,12 +151,13 @@ class TISManager(DetectorManager):
         
 def getTISObj(cameraId):
     try:
+        lib = __import__('pyicic')
         from model.interfaces.tiscamera import CameraTIS
         print('Trying to import camera', cameraId)
         camera = CameraTIS(cameraId)
         print('Initialized TIS Camera Object, model: ', camera.model)
         return camera
-    except (OSError, IndexError):
+    except (OSError, IndexError, ModuleNotFoundError):
         print('Initializing Mock TIS')
         from model.interfaces.mockers import MockCameraTIS
         return MockCameraTIS()

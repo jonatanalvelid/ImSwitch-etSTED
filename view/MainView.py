@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 20 15:13:24 2020
-
-@author: _Xavi
-"""
 import os
 
 import numpy as np
@@ -44,14 +38,6 @@ class MainView(QtGui.QMainWindow):
         # Widget factory
         self.factory = widgets.WidgetFactory(defaultPreset)
 
-        # Think what is self. and what is not !
-
-        # Shortcuts
-        # TODO
-
-        # Menu Bar
-        # TODO
-
         # Window
         self.setWindowTitle('ImSwitch')
         self.cwidget = QtGui.QWidget()
@@ -89,11 +75,11 @@ class MainView(QtGui.QMainWindow):
             dockArea.addDock(focusLockDock, 'above', laserDock)
 
         # Focus lock dock
-        if self.availableWidgetsInfo.SmartSTEDWidget:
-            smartSTEDDock = Dock('SmartSTED', size=(1, 1))
-            self.smartSTEDWidget = self.factory.createWidget(widgets.SmartSTEDWidget)
-            smartSTEDDock.addWidget(self.smartSTEDWidget)
-            dockArea.addDock(smartSTEDDock, 'above', laserDock)
+        if self.availableWidgetsInfo.EtSTEDWidget:
+            etSTEDDock = Dock('EtSTED', size=(1, 1))
+            self.etSTEDWidget = self.factory.createWidget(widgets.EtSTEDWidget)
+            etSTEDDock.addWidget(self.etSTEDWidget)
+            dockArea.addDock(etSTEDDock, 'above', laserDock)
 
         # FFT dock
         if self.availableWidgetsInfo.FFTWidget:

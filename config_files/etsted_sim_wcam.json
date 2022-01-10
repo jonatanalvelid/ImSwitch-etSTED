@@ -1,6 +1,6 @@
 {
     "detectors": {
-        "APDgreen": {
+        "APDred": {
             "analogChannel": null,
             "digitalLine": null,
             "managerName": "APDManager",
@@ -14,67 +14,36 @@
         "etSTEDCamera": {
             "analogChannel": null,
             "digitalLine": null,
-            "managerName": "HamamatsuManager",
+            "managerName": "TISManager",
             "managerProperties": {
                 "purpose": "acquisition",
                 "cameraListIndex": 0,
-                "hamamatsu": {
-                    "readout_speed": 3,
-                    "trigger_global_exposure": 5,
-                    "trigger_active": 2,
-                    "trigger_polarity": 2,
-                    "exposure_time": 0.01,
-                    "trigger_source": 1,
-                    "subarray_hpos": 0,
-                    "subarray_vpos": 0,
-                    "subarray_hsize": 2048,
-                    "subarray_vsize": 2048,
-                    "flipud": false,
+                "tis": {
+                    "exposure": 1,
+                    "gain": 1,
+                    "brightness": 1,
+                    "image_width": 2448,
+                    "image_height": 2048,
+                    "flipud": true,
                     "fliplr": true
                 }
             }
-        },
-        "FocusLockCamera": {
-          "analogChannel": null,
-          "digitalLine": null,
-          "managerName": "TISManager",
-          "managerProperties": {
-            "purpose": "focusLock",
-            "cameraListIndex": 0,
-            "tis": {
-              "exposure": 0,
-              "gain": 0,
-              "brightness": 0,
-              "image_width": 1280,
-              "image_height": 1024
-            }
-          }
         }
     },
     "lasers": {
-        "488WF": {
+        "488": {
             "analogChannel": null,
-            "digitalLine": 5,
+            "digitalLine": 0,
             "managerName": "CoboltLaserManager",
             "managerProperties": {
                 "digitalDriver": "cobolt.cobolt0601.Cobolt0601_f2",
                 "digitalPorts": [
-                    "ASRL8::INSTR"
+                    "ASRL9::INSTR"
                 ]
             },
             "wavelength": 488,
             "valueRangeMin": 0,
             "valueRangeMax": 200,
-            "valueRangeStep": 1
-        },
-        "561": {
-            "analogChannel": null,
-            "digitalLine": 1,
-            "managerName": "NidaqLaserManager",
-            "managerProperties": {},
-            "wavelength": 561,
-            "valueRangeMin": 0,
-            "valueRangeMax": 1,
             "valueRangeStep": 1
         },
         "640": {
@@ -85,19 +54,6 @@
             "wavelength": 640,
             "valueRangeMin": 0,
             "valueRangeMax": 1,
-            "valueRangeStep": 1
-        },
-        "561AOTF": {
-            "analogChannel": null,
-            "digitalLine": null,
-            "managerName": "AAAOTFLaserManager",
-            "managerProperties": {
-                "rs232device": "aaaotf",
-                "channel": 1
-            },
-            "wavelength": 561,
-            "valueRangeMin": 0,
-            "valueRangeMax": 1023,
             "valueRangeStep": 1
         },
         "640AOTF": {
@@ -111,28 +67,6 @@
             "wavelength": 640,
             "valueRangeMin": 0,
             "valueRangeMax": 1023,
-            "valueRangeStep": 1
-        },
-        "775AOM": {
-            "analogChannel": 3,
-            "digitalLine": 4,
-            "managerName": "NidaqLaserManager",
-            "managerProperties": {},
-            "wavelength": 775,
-            "valueRangeMin": 0,
-            "valueRangeMax": 10,
-            "valueRangeStep": 0.1
-        },
-        "775Katana": {
-            "analogChannel": null,
-            "digitalLine": null,
-            "managerName": "KatanaLaserManager",
-            "managerProperties": {
-                "rs232device": "katana"
-            },
-            "wavelength": 775,
-            "valueRangeMin": 0,
-            "valueRangeMax": 3100,
             "valueRangeStep": 1
         }
     },
@@ -196,25 +130,13 @@
                 "scanner": 0,
                 "positioner": 1
             }
-        },
-        "StageXY": {
-            "analogChannel": null,
-            "digitalLine": null,
-            "managerName": "MHXYStageManager",
-            "managerProperties": {
-                "axisCount": 2,
-                "axisLabels": "XY",
-                "rs232device": "mhxystage",
-                "scanner": 0,
-                "positioner": 1
-            }
         }
     },
     "rs232devices": {
         "aaaotf": {
             "managerName": "RS232Manager",
             "managerProperties": {
-                "port": "ASRL5::INSTR",
+                "port": "ASRL4::INSTR",
                 "encoding": "ascii",
                 "recv_termination": "\n",
                 "send_termination": "\r \n",
@@ -230,7 +152,7 @@
         "pczpiezo": {
             "managerName": "RS232Manager",
             "managerProperties": {
-                "port": "ASRL6::INSTR",
+                "port": "ASRL5::INSTR",
                 "encoding": "ascii",
                 "recv_termination": "\n",
                 "send_termination": "\n",
@@ -238,54 +160,6 @@
                 "bytesize": 8,
                 "parity": "none",
                 "stopbits": 1,
-                "rtscts": "false",
-                "dsrdtr": "false",
-                "xonxoff": "false"
-            }
-        },
-        "katana": {
-            "managerName": "RS232Manager",
-            "managerProperties": {
-                "port": "ASRL4::INSTR",
-                "encoding": "ascii",
-                "recv_termination": "\n",
-                "send_termination": "\n",
-                "baudrate": 38400,
-                "bytesize": 8,
-                "parity": "none",
-                "stopbits": 1,
-                "rtscts": "false",
-                "dsrdtr": "false",
-                "xonxoff": "false"
-            }
-        },
-        "leicastand": {
-            "managerName": "RS232Manager",
-            "managerProperties": {
-                "port": "ASRL9::INSTR",
-                "encoding": "ascii",
-                "recv_termination": "\r",
-                "send_termination": "\r",
-                "baudrate": 19200,
-                "bytesize": 8,
-                "parity": "none",
-                "stopbits": 1,
-                "rtscts": "false",
-                "dsrdtr": "false",
-                "xonxoff": "false"
-            }
-        },
-        "mhxystage": {
-            "managerName": "RS232Manager",
-            "managerProperties": {
-                "port": "ASRL3::INSTR",
-                "encoding": "ascii",
-                "recv_termination": "\r",
-                "send_termination": "\n",
-                "baudrate": 57600,
-                "bytesize": 8,
-                "parity": "none",
-                "stopbits": 2,
                 "rtscts": "false",
                 "dsrdtr": "false",
                 "xonxoff": "false"
@@ -301,27 +175,11 @@
             "sampleRate": 100000.0
         }
     },
-    "slm": {
-        "monitorIdx": 2,
-        "width": 792,
-        "height": 600,
-        "wavelength": 775,
-        "pixelSize": 0.02,
-        "angleMount": 0.15,
-        "correctionPatternsDir": "C:\\Users\\redSTED\\Documents\\ImSwitch\\imcontrol_slm\\slm_defcorrpattern\\"
-    },
-    "focusLock": {
-        "camera": "FocusLockCamera",
-        "positioner": "PiezoZ",
-        "updateFreq": 5,
-        "frameCrop_top": 620,
-        "frameCrop_bottom": 700,
-        "frameCrop_left": 450,
-        "frameCrop_right": 900
-    },
+    "slm": null,
+    "focusLock": null,
     "etSTED": {
         "fastDetector": "etSTEDCamera",
-        "slowDetector": "APDgreen",
+        "slowDetector": "APDred",
         "fastLaser": "488WF"
     },
     "designers": {
@@ -334,24 +192,6 @@
             "y": 0,
             "w": 2448,
             "h": 2048
-        },
-        "scan_80x80": {
-            "x": 100,
-            "y": 350,
-            "w": 1500,
-            "h": 1500
-        },
-        "etsted": {
-            "x": 200,
-            "y": 500,
-            "w": 1500,
-            "h": 1500
-        },
-        "etsted_30x30": {
-            "x": 690,
-            "y": 1050,
-            "w": 580,
-            "h": 580
         },
         "wf_ham": {
             "x": 525,
@@ -367,8 +207,8 @@
         "BeadRecWidget": false,
         "FFTWidget": false,
         "ULensesWidget": false,
-        "SLMWidget": true,
-        "FocusLockWidget": true,
+        "SLMWidget": false,
+        "FocusLockWidget": false,
         "MotCorrWidget": false,
         "EtSTEDWidget": true,
         "LeicaDMIManager": false

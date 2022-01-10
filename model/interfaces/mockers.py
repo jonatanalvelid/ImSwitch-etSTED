@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Aug 12 20:02:08 2014
-
-@author: Federico Barabas
-"""
-
 import ctypes
 import ctypes.util
 import logging
@@ -168,8 +161,9 @@ class MockHamamatsu(Driver):
         self.max_backlog = 0
         self.number_image_buffers = 0
         self.hcam_data = []
+        self.flipimage = (False,False)
 
-        self.mock_data_max_value = np.random.randint(65536)
+        self.mock_data_max_value = np.int(20000)
         self.mock_acquisiton_running = False
 
         self.s = Q_(1, 's')
@@ -477,13 +471,13 @@ class MockWebcam(Driver):
 class MockCameraTIS:
     def __init__(self):
         self.properties = {
-            'image_height': 2048,
-            'image_width': 2448,
+            'image_height': 800,
+            'image_width': 800,
             'subarray_vpos': 0,
             'subarray_hpos': 0,
             'exposure_time': 1,
-            'subarray_vsize': 2048,
-            'subarray_hsize': 2448
+            'subarray_vsize': 800,
+            'subarray_hsize': 800
         }
         self.exposure = 1
         self.gain = 1
@@ -492,13 +486,13 @@ class MockCameraTIS:
         self.flipimage = (False, False)
 
     def grabFrame(self, **kwargs):
-        imgsize = (2048, 2448)
+        imgsize = (800, 800)
         peakmax = 60
         noisemean = 10
         # generate image
         img = np.zeros(imgsize)
         # add a random gaussian peak sometimes
-        if np.random.rand() > 0.1:
+        if np.random.rand() > 0.8:
             x, y = np.meshgrid(np.linspace(0,imgsize[1],imgsize[1]), np.linspace(0,imgsize[0],imgsize[0]))
             pos = np.dstack((x, y))
             xc = (np.random.rand()*2-1)*imgsize[0]/2 + imgsize[0]/2

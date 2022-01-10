@@ -52,21 +52,6 @@
         }
     },
     "lasers": {
-        "488WF": {
-            "analogChannel": null,
-            "digitalLine": 5,
-            "managerName": "CoboltLaserManager",
-            "managerProperties": {
-                "digitalDriver": "cobolt.cobolt0601.Cobolt0601_f2",
-                "digitalPorts": [
-                    "ASRL8::INSTR"
-                ]
-            },
-            "wavelength": 488,
-            "valueRangeMin": 0,
-            "valueRangeMax": 200,
-            "valueRangeStep": 1
-        },
         "561": {
             "analogChannel": null,
             "digitalLine": 1,
@@ -259,22 +244,6 @@
                 "xonxoff": "false"
             }
         },
-        "leicastand": {
-            "managerName": "RS232Manager",
-            "managerProperties": {
-                "port": "ASRL9::INSTR",
-                "encoding": "ascii",
-                "recv_termination": "\r",
-                "send_termination": "\r",
-                "baudrate": 19200,
-                "bytesize": 8,
-                "parity": "none",
-                "stopbits": 1,
-                "rtscts": "false",
-                "dsrdtr": "false",
-                "xonxoff": "false"
-            }
-        },
         "mhxystage": {
             "managerName": "RS232Manager",
             "managerProperties": {
@@ -322,7 +291,7 @@
     "etSTED": {
         "fastDetector": "etSTEDCamera",
         "slowDetector": "APDgreen",
-        "fastLaser": "488WF"
+        "fastLaser": "561AOTF"
     },
     "designers": {
         "scanDesigner": "GalvoScanDesigner",
@@ -335,17 +304,29 @@
             "w": 2448,
             "h": 2048
         },
-        "etsted_80x80": {
-            "x": 525,
-            "y": 840,
-            "w": 800,
-            "h": 800
+        "scan_80x80": {
+            "x": 100,
+            "y": 350,
+            "w": 1500,
+            "h": 1500
+        },
+        "etsted": {
+            "x": 200,
+            "y": 500,
+            "w": 1500,
+            "h": 1500
         },
         "etsted_30x30": {
             "x": 690,
             "y": 1050,
             "w": 580,
             "h": 580
+        },
+        "wf_ham": {
+            "x": 525,
+            "y": 840,
+            "w": 800,
+            "h": 800
         }
     },
     "availableWidgets": {

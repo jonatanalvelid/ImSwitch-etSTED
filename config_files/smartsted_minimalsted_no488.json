@@ -11,62 +11,26 @@
                 "purpose": "acquisition"
             }
         },
-        "etSTEDCamera": {
+        "smartSTEDCamera": {
             "analogChannel": null,
             "digitalLine": null,
-            "managerName": "HamamatsuManager",
+            "managerName": "TISManager",
             "managerProperties": {
                 "purpose": "acquisition",
-                "cameraListIndex": 0,
-                "hamamatsu": {
-                    "readout_speed": 3,
-                    "trigger_global_exposure": 5,
-                    "trigger_active": 2,
-                    "trigger_polarity": 2,
-                    "exposure_time": 0.01,
-                    "trigger_source": 1,
-                    "subarray_hpos": 0,
-                    "subarray_vpos": 0,
-                    "subarray_hsize": 2048,
-                    "subarray_vsize": 2048,
-                    "flipud": false,
+                "cameraListIndex": 1,
+                "tis": {
+                    "exposure": 1,
+                    "gain": 1,
+                    "brightness": 1,
+                    "image_width": 2448,
+                    "image_height": 2048,
+                    "flipud": true,
                     "fliplr": true
                 }
             }
-        },
-        "FocusLockCamera": {
-          "analogChannel": null,
-          "digitalLine": null,
-          "managerName": "TISManager",
-          "managerProperties": {
-            "purpose": "focusLock",
-            "cameraListIndex": 0,
-            "tis": {
-              "exposure": 0,
-              "gain": 0,
-              "brightness": 0,
-              "image_width": 1280,
-              "image_height": 1024
-            }
-          }
         }
     },
     "lasers": {
-        "488WF": {
-            "analogChannel": null,
-            "digitalLine": 5,
-            "managerName": "CoboltLaserManager",
-            "managerProperties": {
-                "digitalDriver": "cobolt.cobolt0601.Cobolt0601_f2",
-                "digitalPorts": [
-                    "ASRL8::INSTR"
-                ]
-            },
-            "wavelength": 488,
-            "valueRangeMin": 0,
-            "valueRangeMax": 200,
-            "valueRangeStep": 1
-        },
         "561": {
             "analogChannel": null,
             "digitalLine": 1,
@@ -196,18 +160,6 @@
                 "scanner": 0,
                 "positioner": 1
             }
-        },
-        "StageXY": {
-            "analogChannel": null,
-            "digitalLine": null,
-            "managerName": "MHXYStageManager",
-            "managerProperties": {
-                "axisCount": 2,
-                "axisLabels": "XY",
-                "rs232device": "mhxystage",
-                "scanner": 0,
-                "positioner": 1
-            }
         }
     },
     "rs232devices": {
@@ -258,38 +210,6 @@
                 "dsrdtr": "false",
                 "xonxoff": "false"
             }
-        },
-        "leicastand": {
-            "managerName": "RS232Manager",
-            "managerProperties": {
-                "port": "ASRL9::INSTR",
-                "encoding": "ascii",
-                "recv_termination": "\r",
-                "send_termination": "\r",
-                "baudrate": 19200,
-                "bytesize": 8,
-                "parity": "none",
-                "stopbits": 1,
-                "rtscts": "false",
-                "dsrdtr": "false",
-                "xonxoff": "false"
-            }
-        },
-        "mhxystage": {
-            "managerName": "RS232Manager",
-            "managerProperties": {
-                "port": "ASRL3::INSTR",
-                "encoding": "ascii",
-                "recv_termination": "\r",
-                "send_termination": "\n",
-                "baudrate": 57600,
-                "bytesize": 8,
-                "parity": "none",
-                "stopbits": 2,
-                "rtscts": "false",
-                "dsrdtr": "false",
-                "xonxoff": "false"
-            }
         }
     },
     "scan": {
@@ -308,21 +228,13 @@
         "wavelength": 775,
         "pixelSize": 0.02,
         "angleMount": 0.15,
-        "correctionPatternsDir": "C:\\Users\\redSTED\\Documents\\ImSwitch\\imcontrol_slm\\slm_defcorrpattern\\"
+        "correctionPatternsDir": "C:\\Users\\STEDRed\\Documents\\HamamatsuSLM\\deform_corr_patterns\\"
     },
-    "focusLock": {
-        "camera": "FocusLockCamera",
-        "positioner": "PiezoZ",
-        "updateFreq": 5,
-        "frameCrop_top": 620,
-        "frameCrop_bottom": 700,
-        "frameCrop_left": 450,
-        "frameCrop_right": 900
-    },
-    "etSTED": {
-        "fastDetector": "etSTEDCamera",
+    "focusLock": null,
+    "smartSTED": {
+        "fastDetector": "smartSTEDCamera",
         "slowDetector": "APDgreen",
-        "fastLaser": "488WF"
+        "fastLaser": "561"
     },
     "designers": {
         "scanDesigner": "GalvoScanDesigner",
@@ -335,13 +247,19 @@
             "w": 2448,
             "h": 2048
         },
-        "etsted_80x80": {
-            "x": 525,
-            "y": 840,
-            "w": 800,
-            "h": 800
+        "scan_80x80": {
+            "x": 100,
+            "y": 350,
+            "w": 1500,
+            "h": 1500
         },
-        "etsted_30x30": {
+        "smartsted": {
+            "x": 200,
+            "y": 500,
+            "w": 1500,
+            "h": 1500
+        },
+        "smartsted_30x30": {
             "x": 690,
             "y": 1050,
             "w": 580,
@@ -356,9 +274,9 @@
         "FFTWidget": false,
         "ULensesWidget": false,
         "SLMWidget": true,
-        "FocusLockWidget": true,
+        "FocusLockWidget": false,
         "MotCorrWidget": false,
-        "EtSTEDWidget": true,
+        "SmartSTEDWidget": true,
         "LeicaDMIManager": false
     },
     "widgetLayout": {

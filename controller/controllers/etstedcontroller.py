@@ -105,6 +105,7 @@ class EtSTEDController(WidgetController):
         self.__init_frames = 5
         self.__validationFrames = 0
         self.__frame = 0
+        self.__imgstack = []
 
         self.t_call = 0
 

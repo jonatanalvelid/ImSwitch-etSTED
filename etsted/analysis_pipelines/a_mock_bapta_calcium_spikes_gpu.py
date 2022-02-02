@@ -4,7 +4,7 @@ from cupyx.scipy import ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, min_dist=30, thresh_abs=0.08, num_peaks=5, noise_level=12, smoothing_radius=2, ensure_spacing=0, border_limit=10):
+def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=30, thresh_abs=0.08, num_peaks=5, noise_level=12, smoothing_radius=2, ensure_spacing=0, border_limit=10):
     f_multiply = 10000
     if bkg is None or binary_mask is None:
         print('You have to provide a background image and a binary mask for this pipeline!')
@@ -104,6 +104,6 @@ def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, min_di
 
     if testmode:
         img_ana = img_ana.get()
-        return coordinates, img_ana
+        return coordinates, exinfo, img_ana
     else:
-        return coordinates
+        return coordinates, exinfo

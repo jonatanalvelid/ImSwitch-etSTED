@@ -2,7 +2,7 @@ import numpy as np
 import scipy.ndimage as ndi
 from skimage.feature import peak_local_max
 
-def maxpeaks_simple(img, bkg=None, binary_mask=None, testmode=False, min_dist=10, thresh_abs=10, num_peaks=100):
+def maxpeaks_simple(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=10, thresh_abs=10, num_peaks=100):
     if bkg is None:
         return np.array([])
     img_sub = np.subtract(img, bkg)
@@ -13,4 +13,8 @@ def maxpeaks_simple(img, bkg=None, binary_mask=None, testmode=False, min_dist=10
     # if there are detected peaks: just return the first in the list. This is for testing, make a smarter choice later if multiple are detected (?)
     if coords.size:
         coords = np.array([[coords[0,0]],[coords[1,0]]])
-    return coords
+    
+    if testmode:
+        return coords, exinfo, img_sm
+    else:
+        return coords, exinfo

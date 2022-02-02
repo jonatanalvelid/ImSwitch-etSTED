@@ -113,6 +113,8 @@ class EtSTEDController(WidgetController):
         """ Initiate or stop an etSTED experiment. """
         if not self.__running:
             self.__param_vals = self.readParams()
+            # Reset parameter for extra information that pipelines can input and output
+            self.__exinfo = None
 
             # Check if visualization mode, in case launch help widget
             self.__visualizeMode = self._widget.visualizeCheck.isChecked()
@@ -220,6 +222,8 @@ class EtSTEDController(WidgetController):
     def continueFastModality(self):
         """ Continue the fast method, after an event scan has been performed. """
         if self._widget.endlessScanCheck.isChecked() and not self.__running:
+            # Reset parameter for extra information that pipelines can input and output
+            self.__exinfo = None
             # Connect communication channel signals
             #self._commChannel.toggleLiveview.emit(True)
             self._commChannel.updateImage.connect(self.runPipeline)
@@ -273,9 +277,9 @@ class EtSTEDController(WidgetController):
             
             t_pre = millis()
             if self.__visualizeMode or self.__validateMode:
-                coords_detected, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, (self.__visualizeMode or self.__validateMode), *self.__param_vals)
+                coords_detected, self.__exinfo, img_ana = self.pipeline(im, self.__bkg, self.__binary_mask, (self.__visualizeMode or self.__validateMode), self.__exinfo, *self.__param_vals)
             else:
-                coords_detected = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, *self.__param_vals)
+                coords_detected, self.__exinfo = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, self.__exinfo, *self.__param_vals)
             t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             print(f'Time for pipeline: {t_post-t_pre} ms')

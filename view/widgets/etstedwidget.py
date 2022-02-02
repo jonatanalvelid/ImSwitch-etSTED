@@ -151,8 +151,9 @@ class EtSTEDWidget(Widget):
         
         self.param_names = list()
         self.param_edits = list()
+        param_names_exclude = ['img', 'bkg', 'binary_mask', 'testmode', 'exinfo']
         for pipeline_param_name, pipeline_param_val in parameters.items():
-            if pipeline_param_name != 'img' and pipeline_param_name != 'bkg' and pipeline_param_name != 'binary_mask' and pipeline_param_name != 'testmode':
+            if pipeline_param_name not in param_names_exclude:
                 # create param for input
                 param_name = QtGui.QLabel('{}'.format(pipeline_param_name))
                 param_value = pipeline_param_val.default if pipeline_param_val.default is not pipeline_param_val.empty else 0

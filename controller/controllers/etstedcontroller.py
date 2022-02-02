@@ -282,12 +282,14 @@ class EtSTEDController(WidgetController):
                 coords_detected, self.__exinfo = self.pipeline(im, self.__bkg, self.__binary_mask, self.__visualizeMode, self.__exinfo, *self.__param_vals)
             t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
-            print(f'Time for pipeline: {t_post-t_pre} ms')
+            print(f'Time for pipeline: {(t_post-t_pre):.2f} ms')
+            print(coords_detected)
 
             # run if the initial frames have passed
             if self.__frame > self.__init_frames:
                 if self.__visualizeMode:
                     # if visualization mode
+                    print('vismode')
                     self.updateScatter(coords_detected, clear=True)
                     self.setAnalysisHelpImg(img_ana)
                 elif self.__validateMode:
@@ -428,20 +430,31 @@ class EtSTEDController(WidgetController):
 
     def setAnalysisHelpImg(self, img_ana):
         """ Set the preprocessed image in the analysis help widget. """
+        #print('sahi: 1')
         self._widget.analysisHelpWidget.img.setOnlyRenderVisible(True, render=False)
+        #print('sahi: 2')
         if self.__frame < self.__init_frames + 3:
             self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=True, autoDownsample=False)
         else:
             self._widget.analysisHelpWidget.img.setImage(img_ana, autoLevels=False, autoDownsample=False)
-        infotext = f'Min: {np.min(img_ana)}, max: {np.max(img_ana/10000)} (rel. change)'
+        #print('sahi: 3')
+        #infotext = f'Min: {np.min(img_ana)}, max: {np.max(img_ana/10000)} (rel. change)'
+        infotext = f'Min: {np.min(img_ana)}, max: {np.max(img_ana)}'
         self._widget.analysisHelpWidget.info_label.setText(infotext)
+        #print('sahi: 4')
         img_shape = np.shape(img_ana)
+        #print('sahi: 5')
         if self.__frame < self.__init_frames + 1:
             guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])
+        #print('sahi: 6')
         self._widget.analysisHelpWidget.img.render()
+        #print('sahi: 7')
 
     def updateScatter(self, coords, clear=True):
         """ Update the scatter plot of detected event coordinates. """
+        print(coords)
+        print(coords[:,0])
+        print(coords[:,1])
         if np.size(coords) > 0:
             self.__scatterPlot.setData(x=coords[:,0], y=coords[:,1], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
             if np.size(coords) > 2:

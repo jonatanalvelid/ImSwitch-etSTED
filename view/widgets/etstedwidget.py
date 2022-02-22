@@ -44,15 +44,15 @@ class EtSTEDWidget(Widget):
         self.param_names = list()
         self.param_edits = list()
 
-        self.initiateButton = guitools.BetterPushButton('Initiate etSTED')
+        self.initiateButton = guitools.BetterPushButton('Initiate etSTED', minMinWidth=5)
         self.initiateButton.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
-        self.loadPipelineButton = guitools.BetterPushButton('Load pipeline')
+        self.loadPipelineButton = guitools.BetterPushButton('Load pipeline', minMinWidth=5)
         
-        self.coordTransfCalibButton = guitools.BetterPushButton('Transform calibration')
-        self.recordBinaryMaskButton = guitools.BetterPushButton('Record binary mask')
-        self.loadScanParametersButton = guitools.BetterPushButton('Load scan parameters')
-        self.setUpdatePeriodButton = guitools.BetterPushButton('Set update period')
-        self.setBusyFalseButton = guitools.BetterPushButton('Unlock softlock')
+        self.coordTransfCalibButton = guitools.BetterPushButton('Transform calibration', minMinWidth=5)
+        self.recordBinaryMaskButton = guitools.BetterPushButton('Record binary mask', minMinWidth=5)
+        self.loadScanParametersButton = guitools.BetterPushButton('Load scan parameters', minMinWidth=5)
+        self.setUpdatePeriodButton = guitools.BetterPushButton('Set update period', minMinWidth=5)
+        self.setBusyFalseButton = guitools.BetterPushButton('Unlock softlock', minMinWidth=5)
 
         self.endlessScanCheck = QtGui.QCheckBox('Endless')
         self.visualizeCheck = QtGui.QCheckBox('Visualize')
@@ -82,13 +82,16 @@ class EtSTEDWidget(Widget):
         # help widget for showing images from the analysis pipelines, i.e. binary masks or 
         self.analysisHelpWidget = Widget(*args, **kwargs)
         self.analysisHelpWidget.imgVbWidget = pg.GraphicsLayoutWidget()
+        self.analysisHelpWidget.scatter = pg.ScatterPlotItem()
         self.analysisHelpWidget.imgVb = self.analysisHelpWidget.imgVbWidget.addViewBox(row=1, col=1)
 
         self.analysisHelpWidget.img = guitools.OptimizedImageItem(axisOrder = 'row-major')
         self.analysisHelpWidget.img.translate(-0.5, -0.5)
 
         self.analysisHelpWidget.imgVb.addItem(self.analysisHelpWidget.img)
+        
         self.analysisHelpWidget.imgVb.setAspectLocked(True)
+        self.analysisHelpWidget.imgVb.addItem(self.analysisHelpWidget.scatter)
 
         self.analysisHelpWidget.info_label = QtGui.QLabel('<image info>')
         
@@ -109,23 +112,14 @@ class EtSTEDWidget(Widget):
         self.grid.addWidget(self.endlessScanCheck, currentRow, 1)
         self.grid.addWidget(self.visualizeCheck, currentRow, 2)
         self.grid.addWidget(self.validateCheck, currentRow, 3)
-        self.grid.addWidget(self.loadScanParametersButton, currentRow, 4)
-        self.grid.addWidget(self.recordBinaryMaskButton, currentRow, 5)
-        self.grid.addWidget(self.setBusyFalseButton, currentRow, 6)
         
         currentRow += 2
 
-        # add image and pixel size parameters to grid
-        # add param name and param to grid
         self.grid.addWidget(self.throw_delay_label, currentRow-1, 1)
         self.grid.addWidget(self.timelapseScanCheck, currentRow-1, 2)
         self.grid.addWidget(self.timelapse_reps_label, currentRow-1, 3)
-        self.grid.addWidget(self.bin_thresh_label, currentRow-1, 4)
-        self.grid.addWidget(self.bin_smooth_label, currentRow-1, 5)
         self.grid.addWidget(self.throw_delay_edit, currentRow, 1)
         self.grid.addWidget(self.timelapse_reps_edit, currentRow, 3)
-        self.grid.addWidget(self.bin_thresh_edit, currentRow, 4)
-        self.grid.addWidget(self.bin_smooth_edit, currentRow, 5)
 
         currentRow += 1
 
@@ -133,9 +127,31 @@ class EtSTEDWidget(Widget):
         self.grid.addWidget(self.analysisPipelinePar, currentRow, 1)
         self.grid.addWidget(self.transformPipelinePar, currentRow, 2)
         self.grid.addWidget(self.coordTransfCalibButton, currentRow, 3)
-        self.grid.addWidget(self.setUpdatePeriodButton, currentRow, 5)
-        self.grid.addWidget(self.update_period_label, currentRow+1, 4)
-        self.grid.addWidget(self.update_period_edit, currentRow+1, 5)
+
+        currentRow += 1
+
+        self.grid.addWidget(self.update_period_label, currentRow, 2)
+        self.grid.addWidget(self.update_period_edit, currentRow, 3)
+
+        currentRow += 1
+
+        self.grid.addWidget(self.recordBinaryMaskButton, currentRow, 2)
+        self.grid.addWidget(self.setUpdatePeriodButton, currentRow, 3)
+
+        currentRow += 1
+
+        self.grid.addWidget(self.bin_thresh_label, currentRow, 2)
+        self.grid.addWidget(self.bin_smooth_label, currentRow, 3)
+
+        currentRow += 1
+
+        self.grid.addWidget(self.bin_thresh_edit, currentRow, 2)
+        self.grid.addWidget(self.bin_smooth_edit, currentRow, 3)
+
+        currentRow +=1 
+
+        self.grid.addWidget(self.loadScanParametersButton, currentRow, 2)
+        self.grid.addWidget(self.setBusyFalseButton, currentRow, 3)
 
 
     def initParamFields(self, parameters: dict):
@@ -143,8 +159,10 @@ class EtSTEDWidget(Widget):
         # remove previous parameter fields for the previously loaded pipeline
         for param in self.param_names:
             self.grid.removeWidget(param)
+            param.deleteLater()
         for param in self.param_edits:
             self.grid.removeWidget(param)
+            param.deleteLater()
 
         # initiate parameter fields for all the parameters in the pipeline chosen
         currentRow = 4

@@ -183,7 +183,10 @@ def cd_vesicle_prox(img, bkg=None, binary_mask=None, testmode=False, exinfo=None
                                                     track_current = tracks_after[tracks_after['particle']==particle_id_old2]
                                                     if len(track_current) > 0:
                                                         track_current = track_current.tail(1)
-                                                        coord_event_current = np.array([[timepoint, int(track_current['x']), int(track_current['y'])]])
+                                                        #coord_event_current = np.array([[timepoint, int(track_current['x']), int(track_current['y'])]])
+                                                        coord_event_current = np.array([[int(track_current['y']), int(track_current['x'])]])
+                                                        #print(coords_events)
+                                                        #print(coord_event_current)
                                                         coords_events = np.append(coords_events, coord_event_current, axis=0)
                                                         event_found = True
                                                         break
@@ -204,7 +207,7 @@ def cd_vesicle_prox(img, bkg=None, binary_mask=None, testmode=False, exinfo=None
                                                         if len(track_current) > 0:
                                                             track_current = track_current.tail(1)
                                                             #coord_event_current = np.array([[timepoint, int(track_current['x']), int(track_current['y'])]])
-                                                            coord_event_current = np.array([[int(track_current['x']), int(track_current['y'])]])
+                                                            coord_event_current = np.array([[int(track_current['y']), int(track_current['x'])]])
                                                             coords_events = np.append(coords_events, coord_event_current, axis=0)
                                                             break
                                                     else:

@@ -91,14 +91,15 @@ class EtSTEDController(WidgetController):
             "slowscan_y_center": 0
         }
         # initiate flags and params
+        prev_frames_len = 20  # different lengths for different pipelines. BAPTA: 10, VESPROX: 20 (if stat_frames=5)
         self.__running = False
         self.__validating = False
         self.__busy = False
         self.__visualizeMode = False
         self.__validateMode = False
         self.__bkg = None
-        self.__prevFrames = deque(maxlen=10)
-        self.__prevAnaFrames = deque(maxlen=10)
+        self.__prevFrames = deque(maxlen=prev_frames_len)
+        self.__prevAnaFrames = deque(maxlen=prev_frames_len)
         self.__binary_mask = None
         self.__binary_stack = None
         self.__binary_frames = 10
@@ -250,8 +251,8 @@ class EtSTEDController(WidgetController):
 
     def loadPipeline(self):
         """ Load the selected analysis pipeline and its parameters. """
-        pipelinename = self.getPipelineName()
-        self.pipeline = getattr(importlib.import_module(f'etsted.analysis_pipelines.{pipelinename}'), f'{pipelinename}')
+        self.pipelinename = self.getPipelineName()
+        self.pipeline = getattr(importlib.import_module(f'etsted.analysis_pipelines.{self.pipelinename}'), f'{self.pipelinename}')
         self.__pipeline_params = signature(self.pipeline).parameters
 
         self._widget.initParamFields(self.__pipeline_params)
@@ -283,15 +284,15 @@ class EtSTEDController(WidgetController):
             t_post = millis()
             self.__detLog["pipeline_end"] = datetime.now().strftime('%Ss%fus')
             print(f'Time for pipeline: {(t_post-t_pre):.2f} ms')
-            print(coords_detected)
+            #print(coords_detected)
 
             # run if the initial frames have passed
             if self.__frame > self.__init_frames:
                 if self.__visualizeMode:
                     # if visualization mode
-                    print('vismode')
+                    #print('vismode')
                     self.updateScatter(coords_detected, clear=True)
-                    self.setAnalysisHelpImg(img_ana)
+                    self.setAnalysisHelpImg(img_ana, self.__exinfo)
                 elif self.__validateMode:
                     # if validation mode
                     self.updateScatter(coords_detected, clear=True)
@@ -428,7 +429,7 @@ class EtSTEDController(WidgetController):
         """ Launch help widget that shows the preprocessed images in real-time. """
         self._widget.launchHelpWidget(self._widget.analysisHelpWidget, init=True)
 
-    def setAnalysisHelpImg(self, img_ana):
+    def setAnalysisHelpImg(self, img_ana, exinfo=None):
         """ Set the preprocessed image in the analysis help widget. """
         #print('sahi: 1')
         self._widget.analysisHelpWidget.img.setOnlyRenderVisible(True, render=False)
@@ -447,14 +448,24 @@ class EtSTEDController(WidgetController):
         if self.__frame < self.__init_frames + 1:
             guitools.setBestImageLimits(self._widget.analysisHelpWidget.imgVb, img_shape[1], img_shape[0])
         #print('sahi: 6')
+
+        # scatter plot tracked vesicles from exinfo (cdvesprox pipeline)
+        #if exinfo is not None:
+        #print(exinfo['x'])
+        #print(exinfo['y'])
+        if self.pipelinename == 'cd_vesicle_prox':
+            self._widget.analysisHelpWidget.scatter.setData(x=np.array(exinfo['y']), y=np.array(exinfo['x']), pen=pg.mkPen(None), brush='g', symbol='x', size=15)
+        else:
+            self._widget.analysisHelpWidget.scatter.setData(x=[], y=[])
+
         self._widget.analysisHelpWidget.img.render()
         #print('sahi: 7')
 
     def updateScatter(self, coords, clear=True):
         """ Update the scatter plot of detected event coordinates. """
-        print(coords)
-        print(coords[:,0])
-        print(coords[:,1])
+        #print(coords)
+        #print(coords[:,0])
+        #print(coords[:,1])
         if np.size(coords) > 0:
             self.__scatterPlot.setData(x=coords[:,0], y=coords[:,1], pen=pg.mkPen(None), brush='g', symbol='x', size=25)
             if np.size(coords) > 2:

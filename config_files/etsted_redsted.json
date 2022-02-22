@@ -1,12 +1,23 @@
 {
     "detectors": {
-        "APDgreen": {
+        "APDred": {
             "analogChannel": null,
             "digitalLine": null,
             "managerName": "APDManager",
             "managerProperties": {
                 "ctrInputLine": 0,
                 "terminal": "PFI0",
+                "cameraListIndex": null,
+                "purpose": "acquisition"
+            }
+        },
+        "APDgreen": {
+            "analogChannel": null,
+            "digitalLine": null,
+            "managerName": "APDManager",
+            "managerProperties": {
+                "ctrInputLine": 1,
+                "terminal": "PFI12",
                 "cameraListIndex": null,
                 "purpose": "acquisition"
             }
@@ -35,20 +46,20 @@
             }
         },
         "FocusLockCamera": {
-          "analogChannel": null,
-          "digitalLine": null,
-          "managerName": "TISManager",
-          "managerProperties": {
-            "purpose": "focusLock",
-            "cameraListIndex": 0,
-            "tis": {
-              "exposure": 0,
-              "gain": 0,
-              "brightness": 0,
-              "image_width": 1280,
-              "image_height": 1024
+            "analogChannel": null,
+            "digitalLine": null,
+            "managerName": "TISManager",
+            "managerProperties": {
+                "purpose": "focusLock",
+                "cameraListIndex": 0,
+                "tis": {
+                    "exposure": 0,
+                    "gain": 0,
+                    "brightness": 0,
+                    "image_width": 1280,
+                    "image_height": 1024
+                }
             }
-          }
         }
     },
     "lasers": {

@@ -279,7 +279,8 @@ class PositionerController(WidgetController):
         return self._master.positionersManager.execOnAll(lambda p: p.position)
 
     def closeEvent(self):
-        self._master.positionersManager.execOnAll(lambda p: p.setPosition(0))
+        pass
+        #self._master.positionersManager.execOnAll(lambda p: p.setPosition(0))
 
 
 class LaserController(WidgetController):

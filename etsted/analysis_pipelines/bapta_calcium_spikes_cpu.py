@@ -3,13 +3,21 @@ import scipy.ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def bapta_calcium_spikes_cpu(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1, border_limit=10):
-    f_multiply = 100
-    if bkg is None or binary_mask is None or np.shape(img) != np.shape(bkg):
-        print('You have to provide a background image and a binary mask for this pipeline!')
-        #img_ana = np.zeros(np.shape(img))
-        img_ana = np.random.random(np.shape(img))*np.random.random()
+def bapta_calcium_spikes_cpu(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=30, thresh_abs=0.2, num_peaks=10, noise_level=1, smoothing_radius=2, ensure_spacing=1, border_limit=10, init_smooth=0):
+    f_multiply = 1e3
+    #CHANGE 220304: change these initial checks slightly, to divide them in two separate.
+    if binary_mask is None:
+        print('Binary mask not provided.')
+        binary_mask = np.ones(np.shape(img))
+    if bkg is None or np.shape(img) != np.shape(bkg):
+        print('You have to provide a background image for this pipeline.')
+        img_ana = np.zeros(np.shape(img))
     else:
+        #CHANGE 220304: add this initial smoothing
+        if init_smooth==1:
+            img = ndi.filters.gaussian_filter(img.astype('float32'), 2*smoothing_radius)
+            bkg = ndi.filters.gaussian_filter(bkg.astype('float32'), 2*smoothing_radius)
+        
         # subtract last img (noisier, but quicker)
         img_ana = np.subtract(img,bkg)
         
@@ -17,7 +25,7 @@ def bapta_calcium_spikes_cpu(img, bkg=None, binary_mask=None, testmode=False, ex
         img_div = bkg
         # replace noise with a very high value to avoid detecting noise
         img_div[img_div < noise_level] = 100000
-        img_ana = np.divide(img_ana, img_div)
+        img_ana = np.true_divide(img_ana, img_div)  #CHANGE 220304: divide --> true_divide
         img_ana = img_ana * binary_mask
         
         img_ana = ndi.filters.gaussian_filter(img_ana, smoothing_radius)  # Gaussian filter the image, to remove noise and so on, to get a better center estimate
@@ -32,7 +40,6 @@ def bapta_calcium_spikes_cpu(img, bkg=None, binary_mask=None, testmode=False, ex
     footprint = cv2.getStructuringElement(cv2.MORPH_RECT, ksize=[size,size])
     # maximum filter (dilation + equal)
     image_max = cv2.dilate(img_ana, kernel=footprint)
-    #return image, image_max
     mask = np.equal(img_ana,image_max)
     mask &= np.greater(img_ana, thresh_abs)
     

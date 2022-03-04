@@ -4,31 +4,31 @@ from cupyx.scipy import ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0, border_limit=10):
-    f_multiply = 10000
-    if bkg is None or binary_mask is None:
-        print('You have to provide a background image and a binary mask for this pipeline!')
-        img_ana = cp.zeros(cp.shape(cp.array(img))).astype('uint16')
+def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0, border_limit=10, init_smooth=0):
+    f_multiply = 1e3
+    #CHANGE 220304: change these initial checks slightly, to divide them in two separate.
+    if binary_mask is None or np.shape(binary_mask) != np.shape(img):
+        print('Binary mask not provided/wrong size.')
+        binary_mask = cp.ones(np.shape(img)).astype('float32')
+    if bkg is None or np.shape(img) != np.shape(bkg):
+        print('You have to provide a background image for this pipeline.')
+        img_ana = cp.zeros(np.shape(img)).astype('float32')
     else:
-        img = cp.array(img).astype('uint16')
+        img = cp.array(img).astype('float32')
+        bkg = cp.array(bkg).astype('float32')
+        #CHANGE 220304: add this initial smoothing
+        if init_smooth==1:
+            img = ndi.filters.gaussian_filter(img, 2*smoothing_radius)
+            bkg = ndi.filters.gaussian_filter(bkg, 2*smoothing_radius)
 
-        if np.shape(img) != np.shape(bkg):
-            bkg = cp.zeros(cp.shape(img)).astype('uint16')
-        else:
-            bkg = cp.array(bkg).astype('uint16')
-        if np.shape(img) != np.shape(binary_mask):
-            binary_mask = cp.zeros(cp.shape(img)).astype('uint16')
-        else:
-            binary_mask = cp.array(binary_mask).astype('uint16')
         # subtract last img (noisier, but quicker)
-        img_ana = cp.subtract(img,bkg).astype('uint16')
-        img_ana[img_ana > 50000] = 0
+        img_ana = cp.subtract(img,bkg)
         
         # divide by last image to get percentual change in img
         img_div = bkg
         # replace noise with a very high value to avoid detecting noise
         img_div[img_div < noise_level] = 100000
-        img_ana = cp.divide(img_ana, img_div)
+        img_ana = cp.true_divide(img_ana, img_div)  #CHANGE 220304: divide --> true_divide
         img_ana = img_ana * cp.array(binary_mask)
         
         img_ana = ndi.filters.gaussian_filter(img_ana, smoothing_radius)  # Gaussian filter the image, to remove noise and so on, to get a better center estimate

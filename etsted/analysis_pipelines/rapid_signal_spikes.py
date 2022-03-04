@@ -4,7 +4,7 @@ from cupyx.scipy import ndimage as ndi
 import cv2
 from scipy.spatial import cKDTree, distance
 
-def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0, border_limit=10):
+def rapid_signal_spikes(img, bkg=None, binary_mask=None, testmode=False, exinfo=None, min_dist=20, thresh_abs=0.2, num_peaks=5, noise_level=200, smoothing_radius=2, ensure_spacing=0, border_limit=10, init_smooth=0):
     f_multiply = 1e3
     #CHANGE 220304: change these initial checks slightly, to divide them in two separate.
     if binary_mask is None or np.shape(binary_mask) != np.shape(img):
@@ -16,6 +16,10 @@ def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, exinfo
     else:
         img = cp.array(img).astype('float32')
         bkg = cp.array(bkg).astype('float32')
+        #CHANGE 220304: add this initial smoothing
+        if init_smooth==1:
+            img = ndi.filters.gaussian_filter(img, 2*smoothing_radius)
+            bkg = ndi.filters.gaussian_filter(bkg, 2*smoothing_radius)
 
         # subtract last img (noisier, but quicker)
         img_ana = cp.subtract(img,bkg)
@@ -24,7 +28,7 @@ def bapta_calcium_spikes(img, bkg=None, binary_mask=None, testmode=False, exinfo
         img_div = bkg
         # replace noise with a very high value to avoid detecting noise
         img_div[img_div < noise_level] = 100000
-        img_ana = cp.true_divide(img_ana, img_div)
+        img_ana = cp.true_divide(img_ana, img_div)  #CHANGE 220304: divide --> true_divide
         img_ana = img_ana * cp.array(binary_mask)
         
         img_ana = ndi.filters.gaussian_filter(img_ana, smoothing_radius)  # Gaussian filter the image, to remove noise and so on, to get a better center estimate

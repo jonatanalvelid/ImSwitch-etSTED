@@ -1,4 +1,4 @@
-***This self-standing codebase is based on a previous version of ImSwitch. We are working towards implementing the etSTED widget and controller, and additional changes necessary for event-triggered acquisitions, in the main ImSwitch repository and latest version of ImSwitch (1.2) with its current developments.***
+***This self-standing codebase is based on an earlier version of ImSwitch. The etSTED widget and controller are now impemented in the latest version of ImSwitch in the main [ImSwitch repository](https://github.com/kasasxav/ImSwitch).***
 
 # ImSwitch-etSTED
  
